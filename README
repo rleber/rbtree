@@ -69,9 +69,28 @@ useful for quick traversals of the tree:
   p last.prev.key           # => "b"
   p last.prev.prev          # => nil
 
-Note that, unlike the RBTree iterators (RBTree#each, etc.), RBTree::Elements
-do not complain when the underlying tree changes (with one exception -- see
-below). So for instance, you can do:
+The main use of this is to allow you to maintain "state" in a traversal of the
+tree. That is, you can do the following easily:
+
+  require "rbtree"
+  rbtree = RBTree[ ... ]
+  e = rbtree.fetch_element("q") # This fetches the element at key "q"
+  p e.key                   # => "q"  See!
+  saved_position = e
+  ... go away and do other things for a long time ...
+  resume_at_element = saved_position
+  p resume_at_element.key   # => "q" It remembered where we were
+
+Of course, you could do also do this using RBTree#fetch, or RBTree#[], but 
+this will be significantly slower, because RBTree will do a binary search to
+find the element again when you resume.
+
+You can also use RBTree::Elements instead of the "ruby-ish" iterators that 
+RBTree provides (RBTree#each, etc.). There's no speed reason to do so, since
+the iterators are fast. The main reason to iterate using RBTree::Element#next etc.
+is because, unlike the RBTree iterators, RBTree::Elements do not complain when 
+the underlying tree changes (with one exception -- see below). So for instance, 
+you can do:
 
   require "rbtree"
   rbtree = RBTree["c", 10, "a", 20]
@@ -81,9 +100,9 @@ below). So for instance, you can do:
   rbtree["b"] = 15
   p first.next.key           # => "b"
 
-The one exception is: the results are undefined if you delete the node in
-a tree at which an RBTree::Element is currently pointing. It will most likely
-result in an error. So, don't do this:
+The one exception is: the results are undefined if you use an RBTree::Element
+to refer to an element in the RBTree which has been deleted from the tree. It
+will most likely result in an error. So, don't do this:
 
   require "rbtree"
   rbtree = RBTree["c", 10, "a", 20]
@@ -92,8 +111,10 @@ result in an error. So, don't do this:
   rbtree.delete("a")
   first.key                  # BOOM!
 
-This is not to say that you can't delete an element like this, just don't
-try to use the RBTree::Element to refer to it afterward.
+This is not to say that you can't delete an element while using RBTree::Elements --
+you can. Everything in the previous example would work just fine up to the last
+step. Just don't try to use the RBTree::Element to refer to the deleted element
+after it has been deleted.
 
 == Requirement
 
