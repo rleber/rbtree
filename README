@@ -34,8 +34,8 @@ not modifiable, or TypeError is thrown.
 
 RBTree supoorts pretty printing using pp.
 
-This library contains two classes. One is RBTree and the other is
-MultiRBTree that is a parent class of RBTree. RBTree does not allow
+This library contains three classes. The two base classes are RBTree and 
+MultiRBTree, which is a parent class of RBTree. RBTree does not allow
 duplications of keys but MultiRBTree does.
 
   require "rbtree"
@@ -53,6 +53,21 @@ duplications of keys but MultiRBTree does.
     p [k, v]
   end                        # => ["a", 20] ["a", 40] ["c", 10]
 
+In addition, this library also defines a class RBTree::Node, which is
+useful for iterating over a tree:
+
+  require "rbtree"
+  rbtree = RBTree["c", 10, "a", 20]
+  node = rbtree.first_node
+  p node.key                # => "a"
+  p node.value              # => 20
+  p node.next.key           # => "c"
+  p node.next.next          # => nil
+  last = rbtree.last_node
+  p last.key                # => "c"
+  p last.prev.key           # => "b"
+  p last.prev.prev          # => nil
+
 == Requirement
 
   * Ruby 1.8.x, 1.9.1
@@ -63,7 +78,7 @@ duplications of keys but MultiRBTree does.
 
 or download a tarball from the link below
 
-  * ((<"Ruby/RBTree 0.3.0"|URL:rbtree-0.3.0.tar.gz>))
+  * ((<"Ruby/RBTree 0.3.1"|URL:rbtree-0.3.1.tar.gz>))
 
 and then
 
