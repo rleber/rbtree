@@ -1569,7 +1569,7 @@ rbtree_last(VALUE self)
 }
 
 VALUE
-rbtree_first_last_rbtree_element(VALUE self, const int first)
+rbtree_first_last_element(VALUE self, const int first)
 {
     dnode_t* node = rbtree_first_last_node(self, first);
 
@@ -1588,7 +1588,7 @@ rbtree_first_last_rbtree_element(VALUE self, const int first)
 VALUE
 rbtree_first_element(VALUE self)
 {
-    return rbtree_first_last_rbtree_element(self, 1);
+    return rbtree_first_last_element(self, 1);
 }
 
 /*
@@ -1600,7 +1600,7 @@ rbtree_first_element(VALUE self)
 VALUE
 rbtree_last_element(VALUE self)
 {
-    return rbtree_first_last_rbtree_element(self, 0);
+    return rbtree_first_last_element(self, 0);
 }
 
 /*
