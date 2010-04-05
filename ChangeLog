@@ -1,3 +1,10 @@
+2010-04-05  Richard LeBer
+	* version 0.2.2 candidate proposed (with modifications by Richard LeBer)
+	
+	* Added RBTree::Node class for stateful traversals of the tree
+	
+	* README: modified to reflect new RBTree::Node class
+
 2009-01-27  OZAWA Takuma
 
 	* version 0.2.1 released.
