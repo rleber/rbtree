@@ -271,26 +271,17 @@ VALUE
 rbtree_element_next_prev(VALUE self, const int next)
 {
 	dnode_t *node = NODE(self);
-	if (node == NULL) {
-		return Qnil;
+	if (node == NULL) return Qnil;
+	VALUE tree = TREE(self);
+	if (tree == Qnil) return Qnil;
+	dnode_t *successor;
+	if (next) {
+		successor = dict_next(DICT(tree), NODE(self));
 	} else {
-		VALUE tree = TREE(self);
-		if (tree == Qnil) {
-			return Qnil;
-		} else {
-			dnode_t *successor;
-			if (next) {
-				successor = dict_next(DICT(tree), NODE(self));
-			} else {
-				successor = dict_prev(DICT(tree), NODE(self));
-			}
-			if (successor == NULL) {
-				return Qnil;
-			} else {
-			    return rbtree_element_create(tree, successor);
-			}
-		}
+		successor = dict_prev(DICT(tree), NODE(self));
 	}
+	if (successor == NULL) return Qnil;
+    return rbtree_element_create(tree, successor);
 }
 
 VALUE
