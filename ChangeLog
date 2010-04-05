@@ -1,3 +1,25 @@
+2009-11-14  OZAWA Takuma
+
+	* version 0.3.0 released.
+
+2009-11-10  OZAWA Takuma
+
+	* rbtree.c: applied patches for Ruby 1.9 by Florian Gilcher and
+	Nobu Nakada. Thanks.
+	http://redmine.ruby-lang.org/issues/show/2348
+	
+	* test.rb: ditto.
+	
+	* extconf.rb: ditto.
+	
+	* extconf.rb: remove options for only gcc.
+
+	* test.rb (test_inspect): correct recursion tests.
+
+	* rbtree.c (rbtree_to_s_recursive): should return if recursive.
+
+	* test.rb (test_to_s): add recursion tests.
+	
 2009-01-27  OZAWA Takuma
 
 	* version 0.2.1 released.

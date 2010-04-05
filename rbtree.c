@@ -1,10 +1,13 @@
 /*
  * MIT License
- * Copyright (c) 2002-2004, 2007, 2009 OZAWA Takuma
+ * Copyright (c) 2002-2004, 2007, 2009-2010 OZAWA Takuma
  */
-#include <ruby/ruby.h>
-#include <ruby/version.h>
+#include <ruby.h>
+#ifdef HAVE_RUBY_ST_H
 #include <ruby/st.h>
+#else
+#include <st.h>
+#endif
 #include <stdarg.h>
 #include "dict.h"
 
@@ -358,7 +361,7 @@ rbtree_fetch(int argc, VALUE* argv, VALUE self)
         rbtree_argc_error();
     block_given = rb_block_given_p();
     if (block_given && argc == 2)
-	rb_warn("block supersedes default value argument");
+        rb_warn("block supersedes default value argument");
 
     node = dict_lookup(DICT(self), TO_KEY(argv[0]));
     if (node != NULL)
@@ -1066,7 +1069,7 @@ rbtree_to_a(VALUE self)
 static each_return_t
 to_hash_i(dnode_t* node, void* hash)
 {
-    st_insert(RHASH_TBL((long)hash), GET_KEY(node), GET_VAL(node));
+    st_insert(RHASH_TBL((VALUE)hash), GET_KEY(node), GET_VAL(node));
     return EACH_NEXT;
 }
 
@@ -1103,9 +1106,9 @@ static VALUE
 rbtree_begin_inspect(VALUE self)
 {
     const char* c = rb_class2name(CLASS_OF(self));
-    VALUE rb_str = rb_str_new(0, strlen(c) + 4);
-    sprintf(RSTRING_PTR(rb_str), "#<%s: ", c);
-    return rb_str;
+    VALUE str = rb_str_new(0, strlen(c) + 4);
+    sprintf(RSTRING_PTR(str), "#<%s: ", c);
+    return str;
 }
 
 static VALUE
@@ -1115,11 +1118,11 @@ to_s_rbtree(VALUE self, VALUE nil)
 }
 
 #ifdef HAVE_RB_EXEC_RECURSIVE
-VALUE
+static VALUE
 rbtree_to_s_recursive(VALUE self, VALUE arg, int recursive)
 {
     if (recursive)
-        rb_str_cat2(rbtree_begin_inspect(self), "...>");
+        return rb_str_cat2(rbtree_begin_inspect(self), "...>");
     return to_s_rbtree(self, Qnil);
 }
 #endif
@@ -1134,7 +1137,7 @@ rbtree_to_s(VALUE self)
     return rb_exec_recursive(rbtree_to_s_recursive, self, Qnil);
 #else
     if (rb_inspecting_p(self))
- return rb_str_cat2(rbtree_begin_inspect(self), "...>");
+        return rb_str_cat2(rbtree_begin_inspect(self), "...>");
     return rb_protect_inspect(to_s_rbtree, self, Qnil);
 #endif
 }
@@ -1189,8 +1192,7 @@ inspect_rbtree(VALUE self, VALUE ret)
     return ret;
 }
 
-#ifdef HAVE_RB_EXEC_RECURSIVE
-VALUE
+static VALUE
 rbtree_inspect_recursive(VALUE self, VALUE arg, int recursive)
 {
     VALUE str = rbtree_begin_inspect(self);
@@ -1198,7 +1200,6 @@ rbtree_inspect_recursive(VALUE self, VALUE arg, int recursive)
         return rb_str_cat2(str, "...>");
     return inspect_rbtree(self, str);
 }
-#endif
 
 /*
  *
@@ -1498,11 +1499,7 @@ rbtree_pretty_print(VALUE self, VALUE pp)
 VALUE
 rbtree_pretty_print_cycle(VALUE self, VALUE pp)
 {
-#ifdef HAVE_RB_EXEC_RECURSIVE
     return rb_funcall(pp, id_pp, 1, rbtree_inspect_recursive(self, Qnil, 1));
-#else
-    return rb_funcall(pp, id_pp, 1, rbtree_inspect(self));
-#endif
 }
 
 /*********************************************************************/

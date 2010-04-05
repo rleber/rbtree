@@ -55,7 +55,7 @@ duplications of keys but MultiRBTree does.
 
 == Requirement
 
-  * Ruby 1.8.x
+  * Ruby 1.8.x, 1.9.1
 
 == Install
 
@@ -63,7 +63,7 @@ duplications of keys but MultiRBTree does.
 
 or download a tarball from the link below
 
-  * ((<"Ruby/RBTree 0.2.1"|URL:rbtree-0.2.1.tar.gz>))
+  * ((<"Ruby/RBTree 0.3.0"|URL:rbtree-0.3.0.tar.gz>))
 
 and then
 
@@ -85,7 +85,7 @@ or online documents at ((<URL:http://rbtree.rubyforge.org/>)).
 
 == License
 
-MIT License. Copyright (c) 2002-2004, 2007, 2009 OZAWA Takuma.
+MIT License. Copyright (c) 2002-2004, 2007, 2009-2010 OZAWA Takuma.
 
 dict.c and dict.h are modified copies that are originally in Kazlib
 written by Kaz Kylheku. Copyright is held by Kaz Kylheku, see dict.c

@@ -197,12 +197,13 @@ class RBTreeTest < Test::Unit::TestCase
     
     assert_equal("E", @rbtree.fetch("e", "E"))
     assert_equal("E", @rbtree.fetch("e") { "E" })
+    
     class << (stderr = "")
       alias write <<
     end
     $stderr, stderr, $VERBOSE, verbose = stderr, $stderr, false, $VERBOSE
     begin
-    assert_equal("E", @rbtree.fetch("e", "F") { "E" })
+      assert_equal("E", @rbtree.fetch("e", "F") { "E" })
     ensure
       $stderr, stderr, $VERBOSE, verbose = stderr, $stderr, false, $VERBOSE
     end
@@ -508,9 +509,15 @@ class RBTreeTest < Test::Unit::TestCase
   def test_to_s
     if RUBY_VERSION < "1.9"
       assert_equal("aAbBcCdD", @rbtree.to_s)
-    else #Ruby 1.9 Array#to_s behaves differently
-      val = "[[\"a\", \"A\"], [\"b\", \"B\"], [\"c\", \"C\"], [\"d\", \"D\"]]"
-      assert_equal(val, @rbtree.to_s)
+    else
+      expected = "[[\"a\", \"A\"], [\"b\", \"B\"], [\"c\", \"C\"], [\"d\", \"D\"]]"
+      assert_equal(expected, @rbtree.to_s)
+      
+      rbtree = RBTree.new
+      rbtree[rbtree] = rbtree
+      rbtree.default = rbtree
+      expected = "[[#<RBTree: {#<RBTree: ...>=>#<RBTree: ...>}, default=#<RBTree: ...>, cmp_proc=nil>, #<RBTree: {#<RBTree: ...>=>#<RBTree: ...>}, default=#<RBTree: ...>, cmp_proc=nil>]]"
+      assert_equal(expected, rbtree.to_s)
     end
   end
   
@@ -554,10 +561,13 @@ class RBTreeTest < Test::Unit::TestCase
     assert_equal("nil", cmp_proc)
     
     rbtree = RBTree.new
-    rbtree["e"] = rbtree
-    assert_match(re, rbtree.inspect)
+    rbtree[rbtree] = rbtree
+    rbtree.default = rbtree
     match = re.match(rbtree.inspect)
-    assert_equal(%({"e"=>#<RBTree: ...>}), match[1])
+    tree, default, cmp_proc =  match.to_a[1..-1]
+    assert_equal("{#<RBTree: ...>=>#<RBTree: ...>}", tree)
+    assert_equal("#<RBTree: ...>", default)
+    assert_equal("nil", cmp_proc)
   end
   
   def test_lower_bound
@@ -716,7 +726,7 @@ class RBTreeTest < Test::Unit::TestCase
     
     def test_pp
       assert_equal(%(#<RBTree: {}, default=nil, cmp_proc=nil>\n),
-                   PP.pp(RBTree[], ""))
+                   PP.pp(RBTree.new, ""))
       assert_equal(%(#<RBTree: {"a"=>"A", "b"=>"B"}, default=nil, cmp_proc=nil>\n),
                    PP.pp(RBTree[*%w(a A b B)], ""))
       
@@ -742,7 +752,7 @@ class RBTreeTest < Test::Unit::TestCase
 EOS
       assert_equal(expected, PP.pp(rbtree, ""))
 
-      rbtree = RBTree[]
+      rbtree = RBTree.new
       rbtree[rbtree] = rbtree
       rbtree.default = rbtree
       expected = <<EOS
@@ -795,9 +805,8 @@ class MultiRBTreeTest < Test::Unit::TestCase
     if RUBY_VERSION < "1.9"
       assert_equal("aAbBbCbDcC", @rbtree.to_s)
     else
-      val = "[[\"a\", \"A\"], [\"b\", \"B\"], [\"b\", \"C\"], \
-[\"b\", \"D\"], [\"c\", \"C\"]]"
-      assert_equal(val, @rbtree.to_s)
+      expected = "[[\"a\", \"A\"], [\"b\", \"B\"], [\"b\", \"C\"], \[\"b\", \"D\"], [\"c\", \"C\"]]"
+      assert_equal(expected, @rbtree.to_s)
     end
   end
   
