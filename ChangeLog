@@ -1,9 +1,9 @@
 2010-04-05  Richard LeBer
 	* version 0.3.1 candidate proposed (with modifications by Richard LeBer)
 	
-	* Added RBTree::Node class for stateful traversals of the tree
+	* Added RBTree::Element class, allowing fast traversal of the tree using .next and .prev methods
 	
-	* README: modified to reflect new RBTree::Node class
+	* README: modified to reflect new RBTree::Element class
 
 2009-11-14  OZAWA Takuma
 

@@ -53,20 +53,47 @@ duplications of keys but MultiRBTree does.
     p [k, v]
   end                        # => ["a", 20] ["a", 40] ["c", 10]
 
-In addition, this library also defines a class RBTree::Node, which is
-useful for iterating over a tree:
+In addition, this library also defines a class RBTree::Element, which is
+useful for quick traversals of the tree:
 
   require "rbtree"
   rbtree = RBTree["c", 10, "a", 20]
-  node = rbtree.first_node
-  p node.key                # => "a"
-  p node.value              # => 20
-  p node.next.key           # => "c"
-  p node.next.next          # => nil
-  last = rbtree.last_node
+  first = rbtree.first_element
+  p first.key                # => "a"
+  p first.value              # => 20
+  p first.tree               # => #<RBTree: {"a"=>20, "c"=>10} ...
+  p first.next.key           # => "c"
+  p first.next.next          # => nil
+  last = rbtree.last_first
   p last.key                # => "c"
   p last.prev.key           # => "b"
   p last.prev.prev          # => nil
+
+Note that, unlike the RBTree iterators (RBTree#each, etc.), RBTree::Elements
+do not complain when the underlying tree changes (with one exception -- see
+below). So for instance, you can do:
+
+  require "rbtree"
+  rbtree = RBTree["c", 10, "a", 20]
+  first = rbtree.first_element
+  p first.key                # => "a"
+  p first.next.key           # => "c"
+  rbtree["b"] = 15
+  p first.next.key           # => "b"
+
+The one exception is: the results are undefined if you delete the node in
+a tree at which an RBTree::Element is currently pointing. It will most likely
+result in an error. So, don't do this:
+
+  require "rbtree"
+  rbtree = RBTree["c", 10, "a", 20]
+  first = rbtree.first_element
+  p first.key                # => "a"
+  rbtree.delete("a")
+  first.key                  # BOOM!
+
+This is not to say that you can't delete an element like this, just don't
+try to use the RBTree::Element to refer to it afterward.
 
 == Requirement
 
