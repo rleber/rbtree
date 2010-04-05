@@ -24,6 +24,7 @@
 
 VALUE RBTree;
 VALUE MultiRBTree;
+VALUE RBTreeNode;
 
 static ID id_bound;
 static ID id_cmp;
@@ -33,15 +34,34 @@ static ID id_default;
 typedef struct {
     dict_t* dict;
     VALUE ifnone;
+	VALUE tracking_nodes;
     int iter_lev;
 } rbtree_t;
+
+typedef struct {
+	VALUE tree;
+	dnode_t* node;
+} rbtree_node_t;
 
 #define RBTREE(rbtree) DATA_PTR(rbtree)
 #define DICT(rbtree) ((rbtree_t*)RBTREE(rbtree))->dict
 #define IFNONE(rbtree) ((rbtree_t*)RBTREE(rbtree))->ifnone
+#define TRACKING_NODES(rbtree) ((rbtree_t*)RBTREE(rbtree))->tracking_nodes
 #define ITER_LEV(rbtree) ((rbtree_t*)RBTREE(rbtree))->iter_lev
 #define COMPARE(rbtree) DICT(rbtree)->dict_compare
 #define CONTEXT(rbtree) DICT(rbtree)->dict_context
+
+#define RBTREE_NODE(rbtree_node) DATA_PTR(rbtree_node)
+#define NODE(rbtree_node) ((rbtree_node_t*)RBTREE_NODE(rbtree_node))->node
+#define TREE(rbtree_node) ((rbtree_node_t*)RBTREE_NODE(rbtree_node))->tree
+#define TREE_DATA(rbtree_node) RBTREE(TREE(rbtree_node))
+#define NODE_DICT(rbtree_node) ((rbtree_t*)TREE_DATA(rbtree_node))->dict
+#define LEFT(rbtree_node) NODE(rbtree_node)->dict_left
+#define RIGHT(rbtree_node) NODE(rbtree_node)->dict_right
+#define PARENT(rbtree_node) NODE(rbtree_node)->dict_parent
+#define COLOR(rbtree_node) NODE(rbtree_node)->dict_color
+#define GET_PREV(rbtree_node) ((VALUE)dict_prev(NODE_DICT(rbtree_node), NODE(rbtree_node)))
+#define GET_NEXT(rbtree_node) ((VALUE)dict_next(NODE_DICT(rbtree_node), NODE(rbtree_node)))
 
 #define TO_KEY(arg) ((const void*)arg)
 #define TO_VAL(arg) ((void*)arg)
@@ -82,6 +102,7 @@ rbtree_mark(rbtree_t* rbtree)
         }
         rb_gc_mark((VALUE)dict->dict_context);
     }
+	rb_gc_mark(rbtree->tracking_nodes);
     rb_gc_mark(rbtree->ifnone);
 }
 
@@ -148,6 +169,7 @@ rbtree_alloc(VALUE klass)
     
     DICT(rbtree) = dict;
     IFNONE(rbtree) = Qnil;
+	TRACKING_NODES(rbtree) = rb_ary_new();
     return rbtree;
 }
 
@@ -155,6 +177,130 @@ VALUE rbtree_aset(VALUE, VALUE, VALUE);
 VALUE rbtree_clear(VALUE);
 VALUE rbtree_has_key(VALUE, VALUE);
 VALUE rbtree_update(VALUE, VALUE);
+
+
+/*********************************************************************/
+
+
+static void
+rbtree_node_free(rbtree_node_t* rbtree_node)
+{
+    xfree(rbtree_node);
+}
+
+static void
+rbtree_node_mark(rbtree_node_t* rbtree_node)
+{
+    if (rbtree_node == NULL) return;
+
+    if (rbtree_node->tree != Qnil) {
+		rb_gc_mark(rbtree_node->tree);
+	}
+}
+
+static VALUE
+rbtree_node_alloc(VALUE klass)
+{
+    VALUE rbtree_node = Data_Wrap_Struct(klass, rbtree_node_mark, rbtree_node_free, 0);
+    RBTREE_NODE(rbtree_node) = ALLOC(rbtree_node_t);
+    MEMZERO(RBTREE_NODE(rbtree_node), rbtree_node_t, 1);
+	TREE(rbtree_node) = Qnil;
+    return rbtree_node;
+}
+
+VALUE
+rbtree_node_create(VALUE tree, dnode_t *node)
+{
+	VALUE rbtree_node = rbtree_node_alloc(RBTreeNode);
+	TREE(rbtree_node) = tree;
+	NODE(rbtree_node) = node;
+	rb_ary_push(TRACKING_NODES(tree),rbtree_node);
+	return rbtree_node;
+}
+
+VALUE
+rbtree_node_initialize_copy(VALUE self, VALUE other)
+{
+    if (self == other)
+        return self;
+    if (!rb_obj_is_kind_of(other, CLASS_OF(self))) {
+        rb_raise(rb_eTypeError, "wrong argument type %s (expected %s)",
+                 rb_class2name(CLASS_OF(other)),
+                 rb_class2name(CLASS_OF(self)));
+    }
+    
+	NODE(self) = NODE(other);
+	VALUE tree = TREE(other);
+	TREE(self) = tree;
+	rb_ary_push(TRACKING_NODES(tree),self);
+    return self;
+}
+
+VALUE
+rbtree_node_tree(VALUE self)
+{
+    return TREE(self);
+}
+
+VALUE
+rbtree_node_key(VALUE self)
+{
+	dnode_t *node = NODE(self);
+	if (node == NULL) {
+		return Qnil;
+	} else {
+	    return GET_KEY(node);
+	}
+}
+
+VALUE
+rbtree_node_value(VALUE self)
+{
+	dnode_t *node = NODE(self);
+	if (node == NULL) {
+		return Qnil;
+	} else {
+	    return GET_VAL(node);
+	}
+}
+
+VALUE
+rbtree_node_next_prev(VALUE self, const int next)
+{
+	dnode_t *node = NODE(self);
+	if (node == NULL) {
+		return Qnil;
+	} else {
+		VALUE tree = TREE(self);
+		if (tree == Qnil) {
+			return Qnil;
+		} else {
+			dnode_t *successor;
+			if (next) {
+				successor = dict_next(DICT(tree), NODE(self));
+			} else {
+				successor = dict_prev(DICT(tree), NODE(self));
+			}
+			if (successor == NULL) {
+				return Qnil;
+			} else {
+			    return rbtree_node_create(tree, successor);
+			}
+		}
+	}
+}
+
+VALUE
+rbtree_node_next(VALUE self)
+{
+	return rbtree_node_next_prev(self, 1);
+}
+
+VALUE
+rbtree_node_prev(VALUE self)
+{
+	return rbtree_node_next_prev(self, 0);
+}
 
 /*********************************************************************/
 
@@ -375,6 +521,19 @@ rbtree_fetch(int argc, VALUE* argv, VALUE self)
  *
  */
 VALUE
+rbtree_fetch_node(VALUE self, VALUE key)
+{
+    dnode_t* node;
+
+    node = dict_lookup(DICT(self), TO_KEY(key));
+    if (node == NULL) return Qnil;
+	return rbtree_node_create(self, node);
+}
+
+/*
+ *
+ */
+VALUE
 rbtree_size(VALUE self)
 {
     return ULONG2NUM(dict_count(DICT(self)));
@@ -458,7 +617,7 @@ typedef enum {
     EACH_NEXT, EACH_STOP
 } each_return_t;
 
-typedef each_return_t (*each_callback_func)(dnode_t*, void*);
+typedef each_return_t (*each_callback_func)(VALUE, dnode_t*, void*);
 
 typedef struct {
     VALUE self;
@@ -496,7 +655,7 @@ rbtree_each_body(rbtree_each_arg_t* arg)
          node != NULL;
          node = next_func(dict, node)) {
         
-        if (arg->func(node, arg->arg) == EACH_STOP)
+        if (arg->func(self, node, arg->arg) == EACH_STOP)
             break;
     }
     return self;
@@ -529,7 +688,7 @@ rbtree_reverse_for_each(VALUE self, each_callback_func func, void* arg)
 /*********************************************************************/
 
 static each_return_t
-each_i(dnode_t* node, void* arg)
+each_i(VALUE self, dnode_t* node, void* arg)
 {
     rb_yield(ASSOC(node));
     return EACH_NEXT;
@@ -550,7 +709,7 @@ rbtree_each(VALUE self)
 }
 
 static each_return_t
-each_pair_i(dnode_t* node, void* arg)
+each_pair_i(VALUE self, dnode_t* node, void* arg)
 {
     rb_yield_values(2, GET_KEY(node), GET_VAL(node));
     return EACH_NEXT;
@@ -571,7 +730,7 @@ rbtree_each_pair(VALUE self)
 }
 
 static each_return_t
-each_key_i(dnode_t* node, void* arg)
+each_key_i(VALUE self, dnode_t* node, void* arg)
 {
     rb_yield(GET_KEY(node));
     return EACH_NEXT;
@@ -592,7 +751,7 @@ rbtree_each_key(VALUE self)
 }
 
 static each_return_t
-each_value_i(dnode_t* node, void* arg)
+each_value_i(VALUE self, dnode_t* node, void* arg)
 {
     rb_yield(GET_VAL(node));
     return EACH_NEXT;
@@ -612,6 +771,41 @@ rbtree_each_value(VALUE self)
     return rbtree_for_each(self, each_value_i, NULL);
 }
 
+static each_return_t
+each_node_i(VALUE self, dnode_t* node, void* arg)
+{
+    rb_yield(rbtree_node_create(self, node));
+    return EACH_NEXT;
+}
+
+/*
+ * call-seq:
+ *   rbtree.each_node {|node| block} => rbtree
+ *
+ * Calls block once for each key in order, passing the node for that key as
+ * parameters.
+ */
+VALUE
+rbtree_each_node(VALUE self)
+{
+    RETURN_ENUMERATOR(self, 0, NULL);
+    return rbtree_for_each(self, each_node_i, NULL);
+}
+
+/*
+ * call-seq:
+ *   rbtree.reverse_each_node {|node| block} => rbtree
+ *
+ * Calls block once for each key in reverse order, passing the node for that key as
+ * parameters.
+ */
+VALUE
+rbtree_reverse_each_node(VALUE self)
+{
+    RETURN_ENUMERATOR(self, 0, NULL);
+    return rbtree_reverse_for_each(self, each_node_i, NULL);
+}
+
 /*
  * call-seq:
  *   rbtree.reverse_each {|key, value| block} => rbtree
@@ -627,9 +821,9 @@ rbtree_reverse_each(VALUE self)
 }
 
 static each_return_t
-aset_i(dnode_t* node, void* self)
+aset_i(VALUE self, dnode_t* node, void* to)
 {
-    rbtree_aset((VALUE)self, GET_KEY(node), GET_VAL(node));
+    rbtree_aset((VALUE)to, GET_KEY(node), GET_VAL(node));
     return EACH_NEXT;
 }
 
@@ -688,7 +882,7 @@ rbtree_values_at(int argc, VALUE* argv, VALUE self)
 }
 
 static each_return_t
-select_i(dnode_t* node, void* ary)
+select_i(VALUE self, dnode_t* node, void* ary)
 {
     if (RTEST(rb_yield_values(2, GET_KEY(node), GET_VAL(node))))
         rb_ary_push((VALUE)ary, ASSOC(node));
@@ -710,7 +904,7 @@ rbtree_select(VALUE self)
 }
 
 static each_return_t
-index_i(dnode_t* node, void* arg_)
+index_i(VALUE self, dnode_t* node, void* arg_)
 {
     VALUE* arg = (VALUE*)arg_;
     if (rb_equal(GET_VAL(node), arg[1])) {
@@ -913,7 +1107,7 @@ rbtree_pop(VALUE self)
 }
 
 static each_return_t
-invert_i(dnode_t* node, void* rbtree)
+invert_i(VALUE self, dnode_t* node, void* rbtree)
 {
     rbtree_aset((VALUE)rbtree, GET_VAL(node), GET_KEY(node));
     return EACH_NEXT;
@@ -931,9 +1125,9 @@ rbtree_invert(VALUE self)
 }
 
 static each_return_t
-update_block_i(dnode_t* node, void* self_)
+update_block_i(VALUE other, dnode_t* node, void* self_)
 {
-    VALUE self = (VALUE)self_;
+	VALUE self = (VALUE)self;
     VALUE key = GET_KEY(node);
     VALUE value = GET_VAL(node);
 
@@ -985,7 +1179,7 @@ rbtree_has_key(VALUE self, VALUE key)
 }
 
 static each_return_t
-has_value_i(dnode_t* node, void* arg_)
+has_value_i(VALUE self, dnode_t* node, void* arg_)
 {
     VALUE* arg = (VALUE*)arg_;
     if (rb_equal(GET_VAL(node), arg[1])) {
@@ -1009,7 +1203,7 @@ rbtree_has_value(VALUE self, VALUE value)
 }
 
 static each_return_t
-keys_i(dnode_t* node, void* ary)
+keys_i(VALUE self, dnode_t* node, void* ary)
 {
     rb_ary_push((VALUE)ary, GET_KEY(node));
     return EACH_NEXT;
@@ -1027,7 +1221,7 @@ rbtree_keys(VALUE self)
 }
 
 static each_return_t
-values_i(dnode_t* node, void* ary)
+values_i(VALUE self, dnode_t* node, void* ary)
 {
     rb_ary_push((VALUE)ary, GET_VAL(node));
     return EACH_NEXT;
@@ -1045,7 +1239,7 @@ rbtree_values(VALUE self)
 }
 
 static each_return_t
-to_a_i(dnode_t* node, void* ary)
+to_a_i(VALUE self, dnode_t* node, void* ary)
 {
     rb_ary_push((VALUE)ary, ASSOC(node));
     return EACH_NEXT;
@@ -1064,7 +1258,7 @@ rbtree_to_a(VALUE self)
 }
 
 static each_return_t
-to_hash_i(dnode_t* node, void* hash)
+to_hash_i(VALUE self, dnode_t* node, void* hash)
 {
     st_insert(RHASH_TBL((long)hash), GET_KEY(node), GET_VAL(node));
     return EACH_NEXT;
@@ -1140,7 +1334,7 @@ rbtree_to_s(VALUE self)
 }
 
 static each_return_t
-inspect_i(dnode_t* node, void* ret_)
+inspect_i(VALUE self, dnode_t* node, void* ret_)
 {
     VALUE ret = (VALUE)ret_;
     VALUE str;
@@ -1327,23 +1521,34 @@ rbtree_bound(int argc, VALUE* argv, VALUE self)
     }
 }
 
-static VALUE
-rbtree_first_last(VALUE self, const int first)
+static dnode_t*
+rbtree_first_last_node(VALUE self, const int first)
 {
     dict_t* dict = DICT(self);
     dnode_t* node;
 
     if (dict_isempty(dict)) {
-        if (FL_TEST(self, RBTREE_PROC_DEFAULT)) {
-            return rb_funcall(IFNONE(self), id_call, 2, self, Qnil);
-        }
-        return IFNONE(self);
+		return (dnode_t *) NULL;
     }
     
     if (first)
         node = dict_first(dict);
     else
         node = dict_last(dict);
+    return node;
+}
+
+static VALUE
+rbtree_first_last(VALUE self, const int first)
+{
+    dnode_t* node = rbtree_first_last_node(self, first);
+
+    if (node == NULL) {
+        if (FL_TEST(self, RBTREE_PROC_DEFAULT)) {
+            return rb_funcall(IFNONE(self), id_call, 2, self, Qnil);
+        }
+        return IFNONE(self);
+    }
     return ASSOC(node);
 }
 
@@ -1369,6 +1574,41 @@ VALUE
 rbtree_last(VALUE self)
 {
     return rbtree_first_last(self, 0);
+}
+
+VALUE
+rbtree_first_last_rbtree_node(VALUE self, const int first)
+{
+    dnode_t* node = rbtree_first_last_node(self, first);
+
+    if (node == NULL) {
+        return Qnil;
+    }
+    return rbtree_node_create(self, node);
+}
+
+/*
+ * call-seq:
+ *   rbtree.first_node => RBTree::Node
+ *
+ * Returns the node associated with the first(that is, the smallest) key-value pair.
+ */
+VALUE
+rbtree_first_node(VALUE self)
+{
+    return rbtree_first_last_rbtree_node(self, 1);
+}
+
+/*
+ * call-seq:
+ *   rbtree.last_node => RBTree::Node
+ *
+ * Returns the node associated with the last(that is, the biggest) key-value pair.
+ */
+VALUE
+rbtree_last_node(VALUE self)
+{
+    return rbtree_first_last_rbtree_node(self, 0);
 }
 
 /*
@@ -1508,7 +1748,7 @@ rbtree_pretty_print_cycle(VALUE self, VALUE pp)
 /*********************************************************************/
 
 static each_return_t
-to_flatten_ary_i(dnode_t* node, void* ary)
+to_flatten_ary_i(VALUE self, dnode_t* node, void* ary)
 {
     rb_ary_push((VALUE)ary, GET_KEY(node));
     rb_ary_push((VALUE)ary, GET_VAL(node));
@@ -1595,7 +1835,7 @@ rbtree_s_load(VALUE klass, VALUE str)
  * Note: while iterating RBTree (e.g. in a block of each method), it is
  * not modifiable, or TypeError is thrown.
  * 
- * RBTree supoorts pretty printing using pp.
+ * RBTree supports pretty printing using pp.
  * 
  * This library contains two classes. One is RBTree and the other is
  * MultiRBTree that is a parent class of RBTree. RBTree does not allow
@@ -1621,9 +1861,18 @@ void Init_rbtree()
     MultiRBTree = rb_define_class("MultiRBTree", rb_cData);
     RBTree = rb_define_class("RBTree", MultiRBTree);
 
+	RBTreeNode = rb_define_class_under(RBTree, "Node", rb_cData);
+    rb_define_method(RBTreeNode, "initialize_copy", rbtree_node_initialize_copy, 1);
+	rb_define_method(RBTreeNode, "tree", rbtree_node_tree, 0);
+	rb_define_method(RBTreeNode, "key", rbtree_node_key, 0);
+	rb_define_method(RBTreeNode, "value", rbtree_node_value, 0);
+	rb_define_method(RBTreeNode, "next", rbtree_node_next, 0);
+	rb_define_method(RBTreeNode, "prev", rbtree_node_prev, 0);
+
     rb_include_module(MultiRBTree, rb_mEnumerable);
 
     rb_define_alloc_func(MultiRBTree, rbtree_alloc);
+	rb_define_alloc_func(RBTreeNode, rbtree_node_alloc);
 
     rb_define_singleton_method(MultiRBTree, "[]", rbtree_s_create, -1);
 
@@ -1639,11 +1888,14 @@ void Init_rbtree()
     rb_define_method(MultiRBTree, "==", rbtree_equal, 1);
     rb_define_method(MultiRBTree, "[]", rbtree_aref, 1);
     rb_define_method(MultiRBTree, "fetch", rbtree_fetch, -1);
+    rb_define_method(MultiRBTree, "fetch_node", rbtree_fetch_node, 1);
     rb_define_method(MultiRBTree, "lower_bound", rbtree_lower_bound, 1);
     rb_define_method(MultiRBTree, "upper_bound", rbtree_upper_bound, 1);
     rb_define_method(MultiRBTree, "bound", rbtree_bound, -1);
     rb_define_method(MultiRBTree, "first", rbtree_first, 0);
     rb_define_method(MultiRBTree, "last", rbtree_last, 0);
+    rb_define_method(MultiRBTree, "first_node", rbtree_first_node, 0);
+    rb_define_method(MultiRBTree, "last_node", rbtree_last_node, 0);
     rb_define_method(MultiRBTree, "[]=", rbtree_aset, 2);
     rb_define_method(MultiRBTree, "store", rbtree_aset, 2);
     rb_define_method(MultiRBTree, "default", rbtree_default, -1);
@@ -1659,6 +1911,8 @@ void Init_rbtree()
     rb_define_method(MultiRBTree, "each_key", rbtree_each_key, 0);
     rb_define_method(MultiRBTree, "each_pair", rbtree_each_pair, 0);
     rb_define_method(MultiRBTree, "reverse_each", rbtree_reverse_each, 0);
+    rb_define_method(MultiRBTree, "each_node", rbtree_each_node, 0);
+    rb_define_method(MultiRBTree, "reverse_each_node", rbtree_reverse_each_node, 0);
 
     rb_define_method(MultiRBTree, "keys", rbtree_keys, 0);
     rb_define_method(MultiRBTree, "values", rbtree_values, 0);
