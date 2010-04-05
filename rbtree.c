@@ -1127,7 +1127,7 @@ rbtree_invert(VALUE self)
 static each_return_t
 update_block_i(VALUE other, dnode_t* node, void* self_)
 {
-	VALUE self = (VALUE)self;
+	VALUE self = (VALUE)self_;
     VALUE key = GET_KEY(node);
     VALUE value = GET_VAL(node);
 
