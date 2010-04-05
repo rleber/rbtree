@@ -967,153 +967,153 @@ class MultiRBTreeTest < Test::Unit::TestCase
   end
 end
 
-class TestNodes < Test::Unit::TestCase
+class TestElements < Test::Unit::TestCase
   def setup
     @rbtree = RBTree[*%w(b B d D a A c C)]
   end
   
-  def test_first_node
-    node = @rbtree.first_node
-    assert_kind_of(RBTree::Node, node)
-    assert_equal("a", node.key)
-    assert_equal("A", node.value)
+  def test_first_element
+    element = @rbtree.first_element
+    assert_kind_of(RBTree::Element, element)
+    assert_equal("a", element.key)
+    assert_equal("A", element.value)
     
     # Invariant under addition
     @rbtree["A1"] = "a1"
-    assert_kind_of(RBTree::Node, node)
-    assert_equal("a", node.key)
-    assert_equal("A", node.value)
+    assert_kind_of(RBTree::Element, element)
+    assert_equal("a", element.key)
+    assert_equal("A", element.value)
 
-    # If the addition is before the first node, previously defined nodes remain unchanged
+    # If the addition is before the first element, previously defined elements remain unchanged
     assert "0" < "A" # Just to be sure the test is testing what we think it should
     @rbtree["0"] = "zero"
-    assert_kind_of(RBTree::Node, node)
-    assert_equal("a", node.key)
-    assert_equal("A", node.value)
+    assert_kind_of(RBTree::Element, element)
+    assert_equal("a", element.key)
+    assert_equal("A", element.value)
     
-    # But, the first node has now changed
-    node2 = @rbtree.first_node
-    assert_kind_of(RBTree::Node, node2)
-    assert_equal("0", node2.key)
-    assert_equal("zero", node2.value)
+    # But, the first element has now changed
+    element2 = @rbtree.first_element
+    assert_kind_of(RBTree::Element, element2)
+    assert_equal("0", element2.key)
+    assert_equal("zero", element2.value)
     
-    # If the value underlying a node changes, so does the node
+    # If the value underlying an element changes, so does the element
     @rbtree["a"] = "q"
-    assert_equal("q", node.value)
+    assert_equal("q", element.value)
     
     # Returns nil if no elements in the tree
     tree2 = RBTree[]
-    node3 = tree2.first_node
-    assert_nil node3
+    element3 = tree2.first_element
+    assert_nil element3
     
     # NOTE: behavior under deletion is undefined, and probably pathological. Don't do this:
     #  t = RBTree.new
     #  t['a'] = 'A'
-    #  n = t.first_node
+    #  n = t.first_element
     #  t.delete('a')
-    #  n.key # Because n used to point to a node which has now been deleted. The result is undefined, and may go boom!
+    #  n.key # Because n used to point to an element which has now been deleted. The result is undefined, and may go boom!
     
   end
   
-  def test_last_node
-    node = @rbtree.last_node
-    assert_kind_of(RBTree::Node, node)
-    assert_equal("d", node.key)
-    assert_equal("D", node.value)
+  def test_last_element
+    element = @rbtree.last_element
+    assert_kind_of(RBTree::Element, element)
+    assert_equal("d", element.key)
+    assert_equal("D", element.value)
     
     # Invariant under addition
     @rbtree["c1"] = "C1"
-    assert_kind_of(RBTree::Node, node)
-    assert_equal("d", node.key)
-    assert_equal("D", node.value)
+    assert_kind_of(RBTree::Element, element)
+    assert_equal("d", element.key)
+    assert_equal("D", element.value)
 
-    # If the addition is before the last node, previously defined nodes remain unchanged
+    # If the addition is before the last element, previously defined elements remain unchanged
     @rbtree["e"] = "E"
-    assert_kind_of(RBTree::Node, node)
-    assert_equal("d", node.key)
-    assert_equal("D", node.value)
+    assert_kind_of(RBTree::Element, element)
+    assert_equal("d", element.key)
+    assert_equal("D", element.value)
     
-    # But, the last node has now changed
-    node2 = @rbtree.last_node
-    assert_kind_of(RBTree::Node, node2)
-    assert_equal("e", node2.key)
-    assert_equal("E", node2.value)
+    # But, the last element has now changed
+    element2 = @rbtree.last_element
+    assert_kind_of(RBTree::Element, element2)
+    assert_equal("e", element2.key)
+    assert_equal("E", element2.value)
     
-    # If the value underlying a node changes, so does the node
+    # If the value underlying an element changes, so does the element
     @rbtree["d"] = "q"
-    assert_equal("q", node.value)
+    assert_equal("q", element.value)
     
     # Returns nil if no elements in the tree
     tree2 = RBTree[]
-    node3 = tree2.last_node
-    assert_nil node3
+    element3 = tree2.last_element
+    assert_nil element3
     
     # NOTE: behavior under deletion is undefined, and probably pathological. Don't do this:
     #  t = RBTree.new
     #  t['a'] = 'A'
-    #  n = t.last_node
+    #  n = t.last_element
     #  t.delete('a')
-    #  n.key # Because n used to point to a node which has now been deleted. The result is undefined, and may go boom!
+    #  n.key # Because n used to point to an element which has now been deleted. The result is undefined, and may go boom!
     
   end
   
-  def test_fetch_node
-    node = @rbtree.fetch_node("c")
-    assert_kind_of(RBTree::Node, node)
-    assert_equal("c", node.key)
-    assert_equal("C", node.value)
+  def test_fetch_element
+    element = @rbtree.fetch_element("c")
+    assert_kind_of(RBTree::Element, element)
+    assert_equal("c", element.key)
+    assert_equal("C", element.value)
     
     # Invariant under addition before
     @rbtree["b1"] = "B1"
-    assert_kind_of(RBTree::Node, node)
-    assert_equal("c", node.key)
-    assert_equal("C", node.value)
+    assert_kind_of(RBTree::Element, element)
+    assert_equal("c", element.key)
+    assert_equal("C", element.value)
 
     # Invariant under addition after
     @rbtree["c1"] = "C1"
-    assert_kind_of(RBTree::Node, node)
-    assert_equal("c", node.key)
-    assert_equal("C", node.value)
+    assert_kind_of(RBTree::Element, element)
+    assert_equal("c", element.key)
+    assert_equal("C", element.value)
     
-    # If the value underlying a node changes, so does the node
+    # If the value underlying an element changes, so does the element
     @rbtree["c"] = "q"
-    assert_equal("q", node.value)
+    assert_equal("q", element.value)
     
     # Returns nil if no elements in the tree
     tree2 = RBTree[]
-    node3 = tree2.fetch_node("A")
-    assert_nil node3
+    element3 = tree2.fetch_element("A")
+    assert_nil element3
     
     # Returns nil if no matching element in the tree
-    node4 = tree2.fetch_node("q")
-    assert_nil node4
+    element4 = tree2.fetch_element("q")
+    assert_nil element4
     
     # NOTE: behavior under deletion is undefined, and probably pathological. Don't do this:
     #  t = RBTree.new
     #  t['a'] = 'A'
-    #  n = t.last_node
+    #  n = t.last_element
     #  t.delete('a')
-    #  n.key # Because n used to point to a node which has now been deleted. The result is undefined, and may go boom!
+    #  n.key # Because n used to point to an element which has now been deleted. The result is undefined, and may go boom!
     
   end
   
   def test_next
     @rbtree["e"] = "E"
-    n3 = @rbtree.fetch_node("c")
+    n3 = @rbtree.fetch_element("c")
     n4 = n3.next
-    assert_kind_of(RBTree::Node, n4)
+    assert_kind_of(RBTree::Element, n4)
     assert_equal("d", n4.key)
     assert_equal("D", n4.value)
     
     n5 = n4.next
-    assert_kind_of(RBTree::Node, n5)
+    assert_kind_of(RBTree::Element, n5)
     assert_equal("e", n5.key)
     assert_equal("E", n5.value)
     
     n6 = n5.next
     assert_nil n6 # Past end of tree
     
-    # Note that each invocation of next returns a new Node object:
+    # Note that each invocation of next returns a new Element object:
     n4_b = n3.next
     assert !(n4_b.equal?(n4))
     assert_equal n4.key, n4_b.key
@@ -1124,43 +1124,43 @@ class TestNodes < Test::Unit::TestCase
     assert_equal n4.key, n4_c.key
     assert_equal n4.value, n4_c.value
     
-    # If we add before a node, next doesn't change
+    # If we add before an element, next doesn't change
     @rbtree["b1"] = "B1"
     n4_d = n3.next
-    assert_kind_of(RBTree::Node, n4_d)
+    assert_kind_of(RBTree::Element, n4_d)
     assert_equal("d", n4_d.key)
     assert_equal("D", n4_d.value)
     
-    # If we add after a node, next changes
+    # If we add after an element, next changes
     @rbtree["c1"] = "C1"
     n4_e = n3.next
-    assert_kind_of(RBTree::Node, n4_e)
+    assert_kind_of(RBTree::Element, n4_e)
     assert_equal("c1", n4_e.key)
     assert_equal("C1", n4_e.value)
     # And the linkages still work
     n5_b = n4_e.next
-    assert_kind_of(RBTree::Node, n5_b)
+    assert_kind_of(RBTree::Element, n5_b)
     assert_equal("d", n5_b.key)
     assert_equal("D", n5_b.value)
-    # Note that the old node still points where it always did
+    # Note that the old element still points where it always did
     assert_equal("d", n4.key)
     assert_equal("D", n4.value)
     assert !(n4.equal?(n5_b))
     
-    # If we delete a node before another node, next doesn't change
+    # If we delete an element before another element, next doesn't change
     @rbtree.delete("b1")
     n4_f = n3.next
-    assert_kind_of(RBTree::Node, n4_f)
+    assert_kind_of(RBTree::Element, n4_f)
     assert_equal("c1", n4_f.key)
     assert_equal("C1", n4_f.value)
     
-    # If we add after a node, next changes
+    # If we add after an element, next changes
     @rbtree.delete("c1")
     n4_g = n3.next
-    assert_kind_of(RBTree::Node, n4_g)
+    assert_kind_of(RBTree::Element, n4_g)
     assert_equal("d", n4_g.key)
     assert_equal("D", n4_g.value)
-    # Note that the old node still points where it always did
+    # Note that the old element still points where it always did
     assert_equal("d", n5_b.key)
     assert_equal("D", n5_b.value)
     assert !(n4_g.equal?(n5_b))
@@ -1168,21 +1168,21 @@ class TestNodes < Test::Unit::TestCase
   end
   
   def test_prev
-    n3 = @rbtree.fetch_node("c")
+    n3 = @rbtree.fetch_element("c")
     n2 = n3.prev
-    assert_kind_of(RBTree::Node, n2)
+    assert_kind_of(RBTree::Element, n2)
     assert_equal("b", n2.key)
     assert_equal("B", n2.value)
     
     n1 = n2.prev
-    assert_kind_of(RBTree::Node, n1)
+    assert_kind_of(RBTree::Element, n1)
     assert_equal("a", n1.key)
     assert_equal("A", n1.value)
     
     n0 = n1.prev
     assert_nil n0 # Past beginning of tree
     
-    # Note that each invocation of prev returns a new Node object:
+    # Note that each invocation of prev returns a new Element object:
     n2_b = n3.prev
     assert !(n2_b.equal?(n2))
     assert_equal n2.key, n2_b.key
@@ -1193,67 +1193,67 @@ class TestNodes < Test::Unit::TestCase
     assert_equal n2.key, n2_c.key
     assert_equal n2.value, n2_c.value
     
-    # If we add after a node, prev doesn't change
+    # If we add after an element, prev doesn't change
     @rbtree["c1"] = "C1"
     n2_d = n3.prev
-    assert_kind_of(RBTree::Node, n2_d)
+    assert_kind_of(RBTree::Element, n2_d)
     assert_equal("b", n2_d.key)
     assert_equal("B", n2_d.value)
     
-    # If we add before a node, prev changes
+    # If we add before an element, prev changes
     @rbtree["b1"] = "B1"
     n2_e = n3.prev
-    assert_kind_of(RBTree::Node, n2_e)
+    assert_kind_of(RBTree::Element, n2_e)
     assert_equal("b1", n2_e.key)
     assert_equal("B1", n2_e.value)
     # And the linkages still work
     n1_b = n2_e.prev
-    assert_kind_of(RBTree::Node, n1_b)
+    assert_kind_of(RBTree::Element, n1_b)
     assert_equal("b", n1_b.key)
     assert_equal("B", n1_b.value)
-    # Note that the old node still points where it always did
+    # Note that the old element still points where it always did
     assert_equal("b", n2.key)
     assert_equal("B", n2.value)
     assert !(n2.equal?(n1_b))
     
-    # If we delete a node after another node, prev doesn't change
+    # If we delete an element after another element, prev doesn't change
     @rbtree.delete("c1")
     n2_f = n3.prev
-    assert_kind_of(RBTree::Node, n2_f)
+    assert_kind_of(RBTree::Element, n2_f)
     assert_equal("b1", n2_f.key)
     assert_equal("B1", n2_f.value)
     
-    # If we add after a node, prev changes
+    # If we add after an element, prev changes
     @rbtree.delete("b1")
     n2_g = n3.prev
-    assert_kind_of(RBTree::Node, n2_g)
+    assert_kind_of(RBTree::Element, n2_g)
     assert_equal("b", n2_g.key)
     assert_equal("B", n2_g.value)
-    # Note that the old node still points where it always did
+    # Note that the old element still points where it always did
     assert_equal("b", n2_b.key)
     assert_equal("B", n2_b.value)
     assert !(n2_g.equal?(n2_b))
     # BUT BE CAREFUL, because n2_e is now undefined!
   end
   
-  def test_each_node
+  def test_each_element
     ret = []
-    retval = @rbtree.each_node {|node| ret << node }
+    retval = @rbtree.each_element {|element| ret << element }
     assert retval.equal?(@rbtree)
     assert_equal 4, ret.size
-    non_nodes = ret.select {|x| x.class != RBTree::Node}
-    assert_equal 0, non_nodes.size
+    non_elements = ret.select {|x| x.class != RBTree::Element}
+    assert_equal 0, non_elements.size
     ret2 = []
-    ret.each {|node| ret2 << node.key << node.value }
+    ret.each {|element| ret2 << element.key << element.value }
     assert_equal(%w(a A b B c C d D), ret2)
     
     assert_raises(TypeError) {
-      @rbtree.each_node { @rbtree["e"] = "E" }
+      @rbtree.each_element { @rbtree["e"] = "E" }
     }
     assert_equal(4, @rbtree.size)
     
-    @rbtree.each_node {
-      @rbtree.each_node {}
+    @rbtree.each_element {
+      @rbtree.each_element {}
       assert_raises(TypeError) {
         @rbtree["e"] = "E"
       }
@@ -1262,29 +1262,29 @@ class TestNodes < Test::Unit::TestCase
     assert_equal(4, @rbtree.size)
     
     if defined?(Enumerable::Enumerator)
-      enumerator = @rbtree.each_node
-      assert_equal(%w(a A b B c C d D), enumerator.map{|node| [node.key, node.value]}.flatten)
+      enumerator = @rbtree.each_element
+      assert_equal(%w(a A b B c C d D), enumerator.map{|element| [element.key, element.value]}.flatten)
     end
   end
   
-  def test_reverse_each_node
+  def test_reverse_each_element
     ret = []
-    retval = @rbtree.reverse_each_node {|node| ret << node }
+    retval = @rbtree.reverse_each_element {|element| ret << element }
     assert retval.equal?(@rbtree)
     assert_equal 4, ret.size
-    non_nodes = ret.select {|x| x.class != RBTree::Node}
-    assert_equal 0, non_nodes.size
+    non_elements = ret.select {|x| x.class != RBTree::Element}
+    assert_equal 0, non_elements.size
     ret2 = []
-    ret.each {|node| ret2 << node.key << node.value }
+    ret.each {|element| ret2 << element.key << element.value }
     assert_equal(%w(d D c C b B a A), ret2)
     
     assert_raises(TypeError) {
-      @rbtree.reverse_each_node { @rbtree["e"] = "E" }
+      @rbtree.reverse_each_element { @rbtree["e"] = "E" }
     }
     assert_equal(4, @rbtree.size)
     
-    @rbtree.reverse_each_node {
-      @rbtree.reverse_each_node {}
+    @rbtree.reverse_each_element {
+      @rbtree.reverse_each_element {}
       assert_raises(TypeError) {
         @rbtree["e"] = "E"
       }
@@ -1293,8 +1293,8 @@ class TestNodes < Test::Unit::TestCase
     assert_equal(4, @rbtree.size)
     
     if defined?(Enumerable::Enumerator)
-      enumerator = @rbtree.reverse_each_node
-      assert_equal(%w(d D c C b B a A), enumerator.map{|node| [node.key, node.value]}.flatten)
+      enumerator = @rbtree.reverse_each_element
+      assert_equal(%w(d D c C b B a A), enumerator.map{|element| [element.key, element.value]}.flatten)
     end
   end
 end
