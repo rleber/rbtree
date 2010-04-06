@@ -116,6 +116,17 @@ you can. Everything in the previous example would work just fine up to the last
 step. Just don't try to use the RBTree::Element to refer to the deleted element
 after it has been deleted.
 
+Also available for use with RBTree::Element is the RBTree#add_element method:
+
+  rbtree = RBTree.new
+  element = rbtree.add_element('a', 'A')
+  element.key                                # => 'a'
+  element.value                              # => 'A'
+
+This has a very similar function to RBTree#[], except that it can be used to keep
+track of a traversal from the insertion point, since it returns a RBTree::Element
+value that points at where the new node was inserted.
+
 == Requirement
 
   * Ruby 1.8.x, 1.9.1
