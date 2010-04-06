@@ -1286,6 +1286,15 @@ class TestElements < Test::Unit::TestCase
     assert_equal(false, key.frozen?)
   end
   
+  def test_delete_element
+    element = @rbtree.fetch_element("c")
+    assert_equal("c", element.key)
+    ret = element.delete
+    assert_equal("C", ret)
+    assert_equal(3, @rbtree.size)
+    assert_equal(nil, @rbtree["c"])
+  end
+  
   def test_each_element
     ret = []
     retval = @rbtree.each_element {|element| ret << element }

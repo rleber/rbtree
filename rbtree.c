@@ -297,6 +297,18 @@ rbtree_element_prev(VALUE self)
 	return rbtree_element_next_prev(self, 0);
 }
 
+VALUE
+rbtree_element_delete(VALUE self) 
+{
+	dnode_t *node = NODE(self);
+	if (node == NULL) return Qnil;
+	VALUE tree = TREE(self);
+	if (tree == Qnil) return Qnil;
+	VALUE val = GET_VAL(node);
+	dict_delete_free(DICT(tree), node);
+	return val;
+}
+
 /*********************************************************************/
 
 static int
@@ -1684,6 +1696,7 @@ rbtree_readjust(int argc, VALUE* argv, VALUE self)
     return self;
 }
 
+/* TODO Change so that you can set a comparison procedure without readjusting */
 /*
  * call-seq:
  *   rbtree.cmp_proc => proc
@@ -1881,6 +1894,7 @@ void Init_rbtree()
 	rb_define_method(RBTreeElement, "value", rbtree_element_value, 0);
 	rb_define_method(RBTreeElement, "next", rbtree_element_next, 0);
 	rb_define_method(RBTreeElement, "prev", rbtree_element_prev, 0);
+	rb_define_method(RBTreeElement, "delete", rbtree_element_delete, 0);
 
     rb_include_module(MultiRBTree, rb_mEnumerable);
 

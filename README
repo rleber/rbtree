@@ -127,6 +127,15 @@ This has a very similar function to RBTree#[], except that it can be used to kee
 track of a traversal from the insertion point, since it returns a RBTree::Element
 value that points at where the new node was inserted.
 
+You can also delete elements directly:
+
+  rbtree = RBTree["c", 10, "a", 20]
+  first = rbtree.first_element
+  p first.key                # => "a"
+  first.delete
+  first = rbtree.first_element
+  p first.key                # => "c"
+
 == Requirement
 
   * Ruby 1.8.x, 1.9.1
