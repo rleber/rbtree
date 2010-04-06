@@ -9,6 +9,7 @@
 #include <st.h>
 #endif
 #include <stdarg.h>
+#include <stdio.h> // DEBUGGING
 #include "dict.h"
 
 #define RBTREE_PROC_DEFAULT FL_USER2
@@ -362,8 +363,9 @@ rbtree_s_create(int argc, VALUE* argv, VALUE klass)
         rb_raise(rb_eArgError, "odd number of arguments for RBTree");
 
     rbtree = rbtree_alloc(klass);
-    for (i = 0; i < argc; i += 2)
+    for (i = 0; i < argc; i += 2) {
         rbtree_aset(rbtree, argv[i], argv[i + 1]);
+	}
     return rbtree;
 }
 
@@ -400,15 +402,20 @@ typedef struct {
     dnode_t* node;
     const void* key;
     insert_node_ret_t ret;
+	dnode_t* inserted_node;
 } insert_node_t;
 
 static VALUE
 insert_node_body(insert_node_t* arg)
 {
-    if (dict_insert(arg->dict, arg->node, arg->key))
-        arg->ret = NODE_NOT_FOUND;
-    else
+	dnode_t *inserted_node = dict_insert(arg->dict, arg->node, arg->key);
+	if (inserted_node) {
+		arg->inserted_node = inserted_node;
         arg->ret = NODE_FOUND;
+    } else {
+		arg->inserted_node = arg->node;
+        arg->ret = NODE_NOT_FOUND;
+	}
     return Qnil;
 }
 
@@ -432,7 +439,7 @@ insert_node_ensure(insert_node_t* arg)
     return Qnil;
 }
 
-static void
+static dnode_t*
 rbtree_insert(VALUE self, VALUE key, VALUE value)
 {
     insert_node_t arg;
@@ -445,9 +452,10 @@ rbtree_insert(VALUE self, VALUE key, VALUE value)
     arg.node = node;
     arg.key = TO_KEY(key);
     arg.ret = INITIAL_VALUE;
-
+	
     rb_ensure(insert_node_body, (VALUE)&arg,
               insert_node_ensure, (VALUE)&arg);
+	return arg.inserted_node;
 }
 
 /*********************************************************************/
@@ -468,8 +476,25 @@ rbtree_aset(VALUE self, VALUE key, VALUE value)
             dnode_put(node, TO_VAL(value));
         return value;
     }
-    rbtree_insert(self, key, value);
+    dnode_t *ignore = rbtree_insert(self, key, value);
     return value;
+}
+
+VALUE
+rbtree_add_element(VALUE self, VALUE key, VALUE value)
+{
+    rbtree_modify(self);
+
+	dnode_t *node;
+
+    if (dict_isfull(DICT(self))) {
+        node = dict_lookup(DICT(self), TO_KEY(key));
+        if (node == NULL) rb_raise(rb_eIndexError, "rbtree full");
+        dnode_put(node, TO_VAL(value));
+    } else {
+    	node = rbtree_insert(self, key, value);
+	}
+	return rbtree_element_create(self, node);
 }
 
 /*
@@ -1886,6 +1911,7 @@ void Init_rbtree()
     rb_define_method(MultiRBTree, "last_element", rbtree_last_element, 0);
     rb_define_method(MultiRBTree, "[]=", rbtree_aset, 2);
     rb_define_method(MultiRBTree, "store", rbtree_aset, 2);
+	rb_define_method(MultiRBTree, "add_element", rbtree_add_element, 2);
     rb_define_method(MultiRBTree, "default", rbtree_default, -1);
     rb_define_method(MultiRBTree, "default=", rbtree_set_default, 1);
     rb_define_method(MultiRBTree, "default_proc", rbtree_default_proc, 0);

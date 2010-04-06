@@ -1115,12 +1115,12 @@ class TestElements < Test::Unit::TestCase
     
     # Note that each invocation of next returns a new Element object:
     n4_b = n3.next
-    assert !(n4_b.equal?(n4))
+    assert_not_same(n4_b, n4)
     assert_equal n4.key, n4_b.key
     assert_equal n4.value, n4_b.value
     
     n4_c = n5.prev
-    assert !(n4_c.equal?(n4))
+    assert_not_same(n4_c, n4)
     assert_equal n4.key, n4_c.key
     assert_equal n4.value, n4_c.value
     
@@ -1145,7 +1145,7 @@ class TestElements < Test::Unit::TestCase
     # Note that the old element still points where it always did
     assert_equal("d", n4.key)
     assert_equal("D", n4.value)
-    assert !(n4.equal?(n5_b))
+    assert_not_same(n4, n5_b)
     
     # If we delete an element before another element, next doesn't change
     @rbtree.delete("b1")
@@ -1163,7 +1163,7 @@ class TestElements < Test::Unit::TestCase
     # Note that the old element still points where it always did
     assert_equal("d", n5_b.key)
     assert_equal("D", n5_b.value)
-    assert !(n4_g.equal?(n5_b))
+    assert_not_same(n4_g, n5_b)
     # BUT BE CAREFUL, because n4_e is now undefined!
   end
   
@@ -1184,12 +1184,12 @@ class TestElements < Test::Unit::TestCase
     
     # Note that each invocation of prev returns a new Element object:
     n2_b = n3.prev
-    assert !(n2_b.equal?(n2))
+    assert_not_same(n2_b, n2)
     assert_equal n2.key, n2_b.key
     assert_equal n2.value, n2_b.value
     
     n2_c = n1.next
-    assert !(n2_c.equal?(n2))
+    assert_not_same(n2_c, n2)
     assert_equal n2.key, n2_c.key
     assert_equal n2.value, n2_c.value
     
@@ -1214,7 +1214,7 @@ class TestElements < Test::Unit::TestCase
     # Note that the old element still points where it always did
     assert_equal("b", n2.key)
     assert_equal("B", n2.value)
-    assert !(n2.equal?(n1_b))
+    assert_not_same(n2, n1_b)
     
     # If we delete an element after another element, prev doesn't change
     @rbtree.delete("c1")
@@ -1232,14 +1232,64 @@ class TestElements < Test::Unit::TestCase
     # Note that the old element still points where it always did
     assert_equal("b", n2_b.key)
     assert_equal("B", n2_b.value)
-    assert !(n2_g.equal?(n2_b))
+    assert_not_same(n2_g, n2_b)
     # BUT BE CAREFUL, because n2_e is now undefined!
+  end
+  
+  def test_add_element
+    # add_element behaves just like store or []=, but it returns a RBTree::Element for the new node
+    retval = @rbtree.add_element "e", "E"
+    assert_equal(5, @rbtree.size)
+    assert_equal("E", @rbtree["e"])
+    assert_kind_of RBTree::Element, retval
+    assert_same(@rbtree, retval.tree)
+    assert_equal("e", retval.key)
+    assert_equal("E", retval.value)
+    
+    retval = @rbtree.add_element "c", "E"
+    assert_equal(5, @rbtree.size)
+    assert_equal("E", @rbtree["c"])
+    assert_kind_of RBTree::Element, retval
+    assert_same(@rbtree, retval.tree)
+    assert_equal("c", retval.key)
+    assert_equal("E", retval.value)
+    
+    assert_raises(ArgumentError) { @rbtree.add_element(100, 100) }
+    assert_equal(5, @rbtree.size)
+    
+    key = "f"
+    retval=@rbtree.add_element(key,"F")
+    assert_kind_of RBTree::Element, retval
+    assert_same(@rbtree, retval.tree)
+    assert_equal(key, retval.key)
+    assert_equal("F", retval.value)
+    cloned_key = @rbtree.last[0]
+    assert_equal("f", cloned_key)
+    assert_not_same(key, cloned_key)
+    assert(cloned_key.frozen?)
+    
+    retval=@rbtree.add_element("f", "F")
+    assert_kind_of RBTree::Element, retval
+    assert_same(@rbtree, retval.tree)
+    assert_equal("f", retval.key)
+    assert_equal("F", retval.value)
+    assert_same(cloned_key, @rbtree.last[0])
+
+    rbtree = RBTree.new
+    key = ["g"]
+    retval=rbtree.add_element(key, "G")
+    assert_kind_of RBTree::Element, retval
+    assert_same(rbtree, retval.tree)
+    assert_equal(["g"], retval.key)
+    assert_equal("G", retval.value)
+    assert_same(key, rbtree.first[0])
+    assert_equal(false, key.frozen?)
   end
   
   def test_each_element
     ret = []
     retval = @rbtree.each_element {|element| ret << element }
-    assert retval.equal?(@rbtree)
+    assert_same(retval,@rbtree)
     assert_equal 4, ret.size
     non_elements = ret.select {|x| x.class != RBTree::Element}
     assert_equal 0, non_elements.size
@@ -1270,7 +1320,7 @@ class TestElements < Test::Unit::TestCase
   def test_reverse_each_element
     ret = []
     retval = @rbtree.reverse_each_element {|element| ret << element }
-    assert retval.equal?(@rbtree)
+    assert_same(retval, @rbtree)
     assert_equal 4, ret.size
     non_elements = ret.select {|x| x.class != RBTree::Element}
     assert_equal 0, non_elements.size

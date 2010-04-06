@@ -254,15 +254,15 @@ dict_t *dict_create(dict_comp_t comp)
     dict_t* new = ALLOC(dict_t);
     
     if (new) {
-	new->compare = comp;
-	new->allocnode = dnode_alloc;
-	new->freenode = dnode_free;
-	new->context = NULL;
-	new->nodecount = 0;
-	new->nilnode.left = &new->nilnode;
-	new->nilnode.right = &new->nilnode;
-	new->nilnode.parent = &new->nilnode;
-	new->nilnode.color = dnode_black;
+		new->compare = comp;
+		new->allocnode = dnode_alloc;
+		new->freenode = dnode_free;
+		new->context = NULL;
+		new->nodecount = 0;
+		new->nilnode.left = &new->nilnode;
+		new->nilnode.right = &new->nilnode;
+		new->nilnode.parent = &new->nilnode;
+		new->nilnode.color = dnode_black;
         new->dupes = 0;
     }
     return new;
@@ -542,7 +542,7 @@ dnode_t *dict_upper_bound(dict_t *dict, const void *key)
  * function returns true).
  */
 
-int dict_insert(dict_t *dict, dnode_t *node, const void *key)
+dnode_t *dict_insert(dict_t *dict, dnode_t *node, const void *key)
 {
     dnode_t *where = dict_root(dict), *nil = dict_nil(dict);
     dnode_t *parent = nil, *uncle, *grandpa;
@@ -557,13 +557,13 @@ int dict_insert(dict_t *dict, dnode_t *node, const void *key)
     /* basic binary tree insert */
     
     while (where != nil) {
-	parent = where;
-	result = COMPARE(dict, key, where->key);
-	/* trap attempts at duplicate key insertion unless it's explicitly allowed */
+		parent = where;
+		result = COMPARE(dict, key, where->key);
+		/* trap attempts at duplicate key insertion unless it's explicitly allowed */
 
         if (!dict->dupes && result == 0) {
             where->data = node->data;
-            return 0;
+            return where;
         } else if (result < 0) {
             where = where->left;
         } else {
@@ -574,9 +574,9 @@ int dict_insert(dict_t *dict, dnode_t *node, const void *key)
     assert (where == nil);
 
     if (result < 0)
-	parent->left = node;
+		parent->left = node;
     else
-	parent->right = node;
+		parent->right = node;
 
     node->parent = parent;
     node->left = nil;
@@ -589,53 +589,53 @@ int dict_insert(dict_t *dict, dnode_t *node, const void *key)
     node->color = dnode_red;
 
     while (parent->color == dnode_red) {
-	grandpa = parent->parent;
-	if (parent == grandpa->left) {
-	    uncle = grandpa->right;
-	    if (uncle->color == dnode_red) {	/* red parent, red uncle */
-		parent->color = dnode_black;
-		uncle->color = dnode_black;
-		grandpa->color = dnode_red;
-		node = grandpa;
-		parent = grandpa->parent;
-	    } else {				/* red parent, black uncle */
-	    	if (node == parent->right) {
-		    rotate_left(parent);
-		    parent = node;
-		    assert (grandpa == parent->parent);
-		    /* rotation between parent and child preserves grandpa */
+		grandpa = parent->parent;
+		if (parent == grandpa->left) {
+		    uncle = grandpa->right;
+		    if (uncle->color == dnode_red) {	/* red parent, red uncle */
+			parent->color = dnode_black;
+			uncle->color = dnode_black;
+			grandpa->color = dnode_red;
+			node = grandpa;
+			parent = grandpa->parent;
+		    } else {				/* red parent, black uncle */
+		    	if (node == parent->right) {
+				    rotate_left(parent);
+				    parent = node;
+				    assert (grandpa == parent->parent);
+				    /* rotation between parent and child preserves grandpa */
+				}
+				parent->color = dnode_black;
+				grandpa->color = dnode_red;
+				rotate_right(grandpa);
+				break;
+		    }
+		} else { 	/* symmetric cases: parent == parent->parent->right */
+		    uncle = grandpa->left;
+		    if (uncle->color == dnode_red) {
+			parent->color = dnode_black;
+			uncle->color = dnode_black;
+			grandpa->color = dnode_red;
+			node = grandpa;
+			parent = grandpa->parent;
+		    } else {
+		    	if (node == parent->left) {
+				    rotate_right(parent);
+				    parent = node;
+				    assert (grandpa == parent->parent);
+				}
+				parent->color = dnode_black;
+				grandpa->color = dnode_red;
+				rotate_left(grandpa);
+				break;
+		    }
 		}
-		parent->color = dnode_black;
-		grandpa->color = dnode_red;
-		rotate_right(grandpa);
-		break;
-	    }
-	} else { 	/* symmetric cases: parent == parent->parent->right */
-	    uncle = grandpa->left;
-	    if (uncle->color == dnode_red) {
-		parent->color = dnode_black;
-		uncle->color = dnode_black;
-		grandpa->color = dnode_red;
-		node = grandpa;
-		parent = grandpa->parent;
-	    } else {
-	    	if (node == parent->left) {
-		    rotate_right(parent);
-		    parent = node;
-		    assert (grandpa == parent->parent);
-		}
-		parent->color = dnode_black;
-		grandpa->color = dnode_red;
-		rotate_left(grandpa);
-		break;
-	    }
-	}
     }
 
     dict_root(dict)->color = dnode_black;
 
     assert (dict_verify(dict));
-    return 1;
+    return 0;
 }
 
 /*
@@ -818,15 +818,18 @@ dnode_t *dict_delete(dict_t *dict, dnode_t *delete)
  * the data item.
  */
 
-int dict_alloc_insert(dict_t *dict, const void *key, void *data)
+dnode_t *dict_alloc_insert(dict_t *dict, const void *key, void *data)
 {
     dnode_t *node = dict->allocnode(dict->context);
 
     if (node) {
-	dnode_init(node, data);
-	if (!dict_insert(dict, node, key))
+		dnode_init(node, data);
+		dnode_t *insert_at = dict_insert(dict, node, key);
+		if (insert_at) {
             dict->freenode(node, dict->context);
-	return 1;
+			return insert_at;
+		}
+		return node;
     }
     return 0;
 }
@@ -950,7 +953,8 @@ int dict_contains(dict_t *dict, dnode_t *node)
 
 static dnode_t *dnode_alloc(void *context)
 {
-    return malloc(sizeof *dnode_alloc(NULL));
+//    return malloc(sizeof *dnode_alloc(NULL));
+	return ALLOC(dnode_t);
 }
 
 static void dnode_free(dnode_t *node, void *context)
@@ -960,12 +964,13 @@ static void dnode_free(dnode_t *node, void *context)
 
 dnode_t *dnode_create(void *data)
 {
-    dnode_t *new = malloc(sizeof *new);
+//    dnode_t *new = malloc(sizeof *new);
+	dnode_t *new = ALLOC(dnode_t);
     if (new) {
-	new->data = data;
-	new->parent = NULL;
-	new->left = NULL;
-	new->right = NULL;
+		new->data = data;
+		new->parent = NULL;
+		new->left = NULL;
+		new->right = NULL;
     }
     return new;
 }
