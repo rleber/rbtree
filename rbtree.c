@@ -309,6 +309,21 @@ rbtree_element_delete(VALUE self)
 	return val;
 }
 
+
+VALUE
+rbtree_element_swap_with_next(VALUE self) 
+{
+	dnode_t *node = NODE(self);
+	if (node == NULL) return Qnil;
+	VALUE tree = TREE(self);
+	if (tree == Qnil) return Qnil;
+	if (dict_swap_with_next(DICT(tree), node)) {
+		return Qtrue;
+	} else {
+		return Qfalse;
+	}
+}
+
 /*********************************************************************/
 
 static int
@@ -1895,6 +1910,7 @@ void Init_rbtree()
 	rb_define_method(RBTreeElement, "next", rbtree_element_next, 0);
 	rb_define_method(RBTreeElement, "prev", rbtree_element_prev, 0);
 	rb_define_method(RBTreeElement, "delete", rbtree_element_delete, 0);
+	rb_define_method(RBTreeElement, "swap_with_next", rbtree_element_swap_with_next, 0);
 
     rb_include_module(MultiRBTree, rb_mEnumerable);
 

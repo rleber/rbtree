@@ -1295,6 +1295,57 @@ class TestElements < Test::Unit::TestCase
     assert_equal(nil, @rbtree["c"])
   end
   
+  # RBTree::Element#swap_with_next is very dangerous and can totally screw your tree up,
+  # but it is useful for some algorithms, like the Bentley-Ottman line intersection algorithm.
+  # USE WITH CARE!
+  def test_swap_with_next
+    element_d = @rbtree.fetch_element("d")
+    assert_equal("d", element_d.key)
+    assert_equal("D", element_d.value)
+    assert_equal false, element_d.swap_with_next # Fail - no successor
+    assert_equal("d", element_d.key) # unchanged
+    assert_equal("D", element_d.value) # unchanged
+    assert_equal 4, @rbtree.size
+    assert_equal %w{a b c d}, @rbtree.keys
+    assert_equal %w{A B C D}, @rbtree.values
+    
+    element_c = @rbtree.fetch_element("c")
+    assert_equal("c", element_c.key)
+    assert_equal("C", element_c.value)
+    assert_equal true, element_c.swap_with_next # Success
+    assert_equal("d", element_c.key) # swapped
+    assert_equal("D", element_c.value) # swapped
+    element_d = element_c.next
+    assert_equal("c", element_d.key) # swapped
+    assert_equal("C", element_d.value) # swapped
+    assert_nil element_d.next
+    element_b = element_c.prev
+    assert_equal("b", element_b.key) # still there
+    assert_equal("B", element_b.value) # still there
+    assert_equal 4, @rbtree.size
+    assert_equal %w{a b d c}, @rbtree.keys
+    assert_equal %w{A B D C}, @rbtree.values
+    # NOTE: tree is now totally screwed up. If you try to search on C, you won't find it!
+    
+    element_a = @rbtree.fetch_element("a")
+    assert_equal("a", element_a.key)
+    assert_equal("A", element_a.value)
+    assert_equal true, element_a.swap_with_next # Success
+    assert_equal("b", element_a.key) # swapped
+    assert_equal("B", element_a.value) # swapped
+    element_b = element_a.next
+    assert_equal("a", element_b.key) # swapped
+    assert_equal("A", element_b.value) # swapped
+    assert_nil element_a.prev
+    element_c = element_b.next
+    assert_equal("d", element_c.key) # still there; value changed because of the swap we did above
+    assert_equal("D", element_c.value) # still there; value changed because of the swap we did above
+    assert_equal 4, @rbtree.size
+    assert_equal %w{b a d c}, @rbtree.keys
+    assert_equal %w{B A D C}, @rbtree.values
+    # NOTE: tree is now totally screwed up. If you try to search on A, you won't find it!
+  end
+  
   def test_each_element
     ret = []
     retval = @rbtree.each_element {|element| ret << element }

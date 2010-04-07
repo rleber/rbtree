@@ -639,6 +639,34 @@ dnode_t *dict_insert(dict_t *dict, dnode_t *node, const void *key)
 }
 
 /*
+ * Swap the contents of a node with that of its successor. This is very
+ * dangerous, but occasionally useful, as with the Bentley-Ottman line intersection
+ * algorithm. If improperly used, it will screw up the ordering of your tree!
+ */
+
+int dict_swap_with_next(dict_t *dict, dnode_t *node)
+{
+	assert (!dict_isempty(dict));
+	assert (dict_contains(dict, node));
+	
+	dnode_t *next = dict_next(dict, node);
+	if (next == NULL) return 0; // Fail -- node has no next
+	{
+		void *temp;
+		temp = next->data;
+		next->data = node->data;
+		node->data = temp;
+	}
+	{
+		void *temp_key;
+		temp_key = next->key;
+		next->key = node->key;
+		node->key = temp_key;
+	}
+	return 1;
+}
+
+/*
  * Delete the given node from the dictionary. If the given node does not belong
  * to the given dictionary, undefined behavior results.  A pointer to the
  * deleted node is returned.
