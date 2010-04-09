@@ -1488,6 +1488,40 @@ rbtree_upper_bound(VALUE self, VALUE key)
     return ASSOC(node);
 }
 
+/*
+ * call-seq:
+ *   rbtree.lower_bound(key) => array
+ *
+ * Retruns key-value pair corresponding to the lowest key that is
+ * equal to or greater than the given key(inside of lower
+ * boundary). If there is no such key, returns nil.
+ */
+VALUE
+rbtree_lower_bound_element(VALUE self, VALUE key)
+{
+    dnode_t* node = dict_lower_bound(DICT(self), TO_KEY(key));
+    if (node == NULL)
+        return Qnil;
+    return rbtree_element_create(self,node);
+}
+
+/*
+ * call-seq:
+ *   rbtree.upper_bound(key) => array
+ *
+ * Retruns key-value pair corresponding to the greatest key that is
+ * equal to or lower than the given key(inside of upper boundary). If
+ * there is no such key, returns nil.
+ */
+VALUE
+rbtree_upper_bound_element(VALUE self, VALUE key)
+{
+    dnode_t* node = dict_upper_bound(DICT(self), TO_KEY(key));
+    if (node == NULL)
+        return Qnil;
+    return rbtree_element_create(self, node);
+}
+
 /*********************************************************************/
 
 typedef struct {
@@ -1934,6 +1968,8 @@ void Init_rbtree()
     rb_define_method(MultiRBTree, "fetch_element", rbtree_fetch_element, 1);
     rb_define_method(MultiRBTree, "lower_bound", rbtree_lower_bound, 1);
     rb_define_method(MultiRBTree, "upper_bound", rbtree_upper_bound, 1);
+    rb_define_method(MultiRBTree, "lower_bound_element", rbtree_lower_bound_element, 1);
+	rb_define_method(MultiRBTree, "upper_bound_element", rbtree_upper_bound_element, 1);
     rb_define_method(MultiRBTree, "bound", rbtree_bound, -1);
     rb_define_method(MultiRBTree, "first", rbtree_first, 0);
     rb_define_method(MultiRBTree, "last", rbtree_last, 0);

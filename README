@@ -99,6 +99,10 @@ you can do:
   p first.next.key           # => "c"
   rbtree["b"] = 15
   p first.next.key           # => "b"
+  b = rbtree.lower_bound_element("b")
+  p b.key                    # => "c"
+  d = rbtree.upper_bound_element("d")
+  p d.key                    # => "c"
 
 The one exception is: the results are undefined if you use an RBTree::Element
 to refer to an element in the RBTree which has been deleted from the tree. It

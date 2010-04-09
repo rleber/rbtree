@@ -584,6 +584,30 @@ class RBTreeTest < Test::Unit::TestCase
     assert_equal(nil, rbtree.upper_bound("Z"))
   end
   
+  def test_lower_bound_element
+    rbtree = RBTree[*%w(a A c C e E)]
+    bound1 = rbtree.lower_bound_element("c")
+    assert_kind_of RBTree::Element, bound1
+    assert_equal("c", bound1.key)
+    assert_equal("C", bound1.value)
+    bound2 = rbtree.lower_bound_element("b")
+    assert_equal("c", bound1.key)
+    assert_equal("C", bound1.value)
+    assert_equal(nil, rbtree.lower_bound_element("f"))
+  end
+  
+  def test_upper_bound_element
+    rbtree = RBTree[*%w(a A c C e E)]
+    bound1 = rbtree.upper_bound_element("c")
+    assert_kind_of RBTree::Element, bound1
+    assert_equal("c", bound1.key)
+    assert_equal("C", bound1.value)
+    bound2 = rbtree.upper_bound_element("d")
+    assert_equal("c", bound1.key)
+    assert_equal("C", bound1.value)
+    assert_equal(nil, rbtree.upper_bound_element("Z"))
+  end
+  
   def test_bound
     rbtree = RBTree[*%w(a A c C e E)]
     assert_equal(%w(a A c C), rbtree.bound("a", "c").flatten)
