@@ -225,19 +225,21 @@ rbtree_element_create(VALUE tree, dnode_t *node)
 VALUE
 rbtree_element_initialize_copy(VALUE self, VALUE other)
 {
-    if (self == other)
-        return self;
-    if (!rb_obj_is_kind_of(other, CLASS_OF(self))) {
-        rb_raise(rb_eTypeError, "wrong argument type %s (expected %s)",
-                 rb_class2name(CLASS_OF(other)),
-                 rb_class2name(CLASS_OF(self)));
-    }
-    
+	VALUE tree;
+
+	if (self == other)
+		return self;
+	if (!rb_obj_is_kind_of(other, CLASS_OF(self))) {
+		rb_raise(rb_eTypeError, "wrong argument type %s (expected %s)",
+						 rb_class2name(CLASS_OF(other)),
+						 rb_class2name(CLASS_OF(self)));
+	}
+
 	NODE(self) = NODE(other);
-	VALUE tree = TREE(other);
+	tree       = TREE(other);
 	TREE(self) = tree;
 	rb_ary_push(TRACKING_ELEMENTS(tree),self);
-    return self;
+		return self;
 }
 
 VALUE
@@ -271,18 +273,28 @@ rbtree_element_value(VALUE self)
 VALUE
 rbtree_element_next_prev(VALUE self, const int next)
 {
+	VALUE tree;
 	dnode_t *node = NODE(self);
-	if (node == NULL) return Qnil;
-	VALUE tree = TREE(self);
-	if (tree == Qnil) return Qnil;
-	dnode_t *successor;
+	dnode_t *successor = NULL;
+
+	if (node == NULL)
+		return Qnil;
+
+	tree = TREE(self);
+
+	if (tree == Qnil)
+		return Qnil;
+
 	if (next) {
 		successor = dict_next(DICT(tree), NODE(self));
 	} else {
 		successor = dict_prev(DICT(tree), NODE(self));
 	}
-	if (successor == NULL) return Qnil;
-    return rbtree_element_create(tree, successor);
+
+	if (successor == NULL)
+		return Qnil;
+
+	return rbtree_element_create(tree, successor);
 }
 
 VALUE
