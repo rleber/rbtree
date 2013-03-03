@@ -89,6 +89,7 @@ extern dnode_t *dict_lookup(dict_t *, const void *);
 extern dnode_t *dict_lower_bound(dict_t *, const void *);
 extern dnode_t *dict_upper_bound(dict_t *, const void *);
 extern dnode_t *dict_insert(dict_t *, dnode_t *, const void *);
+extern int dict_swap_with_next(dict_t *dict, dnode_t *node);
 extern dnode_t *dict_delete(dict_t *, dnode_t *);
 extern dnode_t *dict_alloc_insert(dict_t *, const void *, void *);
 extern void dict_delete_free(dict_t *, dnode_t *);
