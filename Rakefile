@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# -*- ruby -*-
+# -*- mode: ruby; coding: utf-8 -*-
 require "rake/clean"
 require "rdoc/task"
 require "rubygems/package_task"
@@ -30,5 +29,5 @@ RDoc::Task.new do |r|
   r.main  = "README.rdoc"
 end
 
-load "rbtree-ng.gemspec"
-Gem::PackageTask.new(RBTREE_NG_GEMSPEC).define
+load "rbtree.gemspec"
+Gem::PackageTask.new(RBTREE_GEMSPEC).define
