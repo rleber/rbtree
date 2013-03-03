@@ -646,23 +646,25 @@ dnode_t *dict_insert(dict_t *dict, dnode_t *node, const void *key)
 
 int dict_swap_with_next(dict_t *dict, dnode_t *node)
 {
+	dnode_t *next  = NULL;
+	void *temp     = NULL;
+	void *temp_key = NULL;
+
 	assert (!dict_isempty(dict));
 	assert (dict_contains(dict, node));
-	
-	dnode_t *next = dict_next(dict, node);
-	if (next == NULL) return 0; // Fail -- node has no next
-	{
-		void *temp;
-		temp = next->data;
-		next->data = node->data;
-		node->data = temp;
-	}
-	{
-		void *temp_key;
-		temp_key = next->key;
-		next->key = node->key;
-		node->key = temp_key;
-	}
+
+	next = dict_next(dict, node);
+	if (next == NULL)
+		return 0; /* Fail -- node has no next */
+
+	temp = next->data;
+	next->data = node->data;
+	node->data = temp;
+
+	temp_key = next->key;
+	next->key = node->key;
+	node->key = temp_key;
+
 	return 1;
 }
 
@@ -848,18 +850,21 @@ dnode_t *dict_delete(dict_t *dict, dnode_t *delete)
 
 dnode_t *dict_alloc_insert(dict_t *dict, const void *key, void *data)
 {
-    dnode_t *node = dict->allocnode(dict->context);
+  dnode_t *node = dict->allocnode(dict->context);
 
-    if (node) {
-		dnode_init(node, data);
-		dnode_t *insert_at = dict_insert(dict, node, key);
-		if (insert_at) {
-            dict->freenode(node, dict->context);
-			return insert_at;
-		}
-		return node;
+  if (node) {
+    dnode_t *insert_at = NULL;
+
+    dnode_init(node, data);
+    insert_at = dict_insert(dict, node, key);
+
+    if (insert_at) {
+      dict->freenode(node, dict->context);
+      return insert_at;
     }
-    return 0;
+    return node;
+  }
+  return 0;
 }
 
 void dict_delete_free(dict_t *dict, dnode_t *node)
