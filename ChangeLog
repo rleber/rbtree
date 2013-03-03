@@ -1,8 +1,10 @@
 2013-03-03  Marvin Gülker
 	* version 0.3.2 prepared (with modifications by Marvin Gülker)
 
-	* Added MultiRBTree::VERSION constant for retrieving the version
+	* rbtree.c: Added MultiRBTree::VERSION constant for retrieving the version
 	number programatically.
+
+	* rbtree.gemspec: Renamed the Gem to rbtree-ng
 
 2010-04-05  Richard LeBer
 	* version 0.3.1 candidate proposed (with modifications by Richard LeBer)
