@@ -12,7 +12,7 @@ end
 task :test => :compile do
   cd "test" do
     Dir["test_*.rb"].each do |path|
-      ruby "-I../ext #{path}"
+      ruby path
     end
   end
 end
