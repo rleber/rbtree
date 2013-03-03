@@ -646,9 +646,9 @@ dnode_t *dict_insert(dict_t *dict, dnode_t *node, const void *key)
 
 int dict_swap_with_next(dict_t *dict, dnode_t *node)
 {
-	dnode_t *next  = NULL;
-	void *temp     = NULL;
-	void *temp_key = NULL;
+	dnode_t *next        = NULL;
+	void *temp           = NULL;
+	const void *temp_key = NULL;
 
 	assert (!dict_isempty(dict));
 	assert (dict_contains(dict, node));
