@@ -22,10 +22,10 @@ equal to, or greater than the second one.
 The interface of RBTree is the almost same as Hash and there are a
 few methods to take advantage of the ordering:
 
-  * lower_bound, upper_bound, bound
-  * first, last
-  * shift, pop
-  * reverse_each
+* lower_bound, upper_bound, bound
+* first, last
+* shift, pop
+* reverse_each
 
 Note: while iterating RBTree (e.g. in a block of each method), it is
 not modifiable, or TypeError is thrown.
@@ -140,7 +140,8 @@ You can also delete elements directly:
 
 == Requirement
 
-  * Ruby 1.9.x, Ruby 2.0.x
+* Ruby 1.9.x
+* Ruby 2.0.x
 
 == Install
 
@@ -182,6 +183,6 @@ me at burningdowntheopera at yahoo dot co dot jp.
 
 == Links
 
-  * {GitHub page}[https://github.com/Quintus/rbtree]
-  * {Original RubyForge project}[http://rubyforge.org/projects/rbtree/]
-  * {Original Website}[http://www.geocities.co.jp/SiliconValley-PaloAlto/3388/rbtree/README.html]
+* {GitHub page}[https://github.com/Quintus/rbtree]
+* {Original RubyForge project}[http://rubyforge.org/projects/rbtree/]
+* {Original Website}[http://www.geocities.co.jp/SiliconValley-PaloAlto/3388/rbtree/README.html]
