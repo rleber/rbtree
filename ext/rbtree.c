@@ -312,11 +312,20 @@ rbtree_element_prev(VALUE self)
 VALUE
 rbtree_element_delete(VALUE self) 
 {
+	VALUE tree;
+	VALUE val;
 	dnode_t *node = NODE(self);
-	if (node == NULL) return Qnil;
-	VALUE tree = TREE(self);
-	if (tree == Qnil) return Qnil;
-	VALUE val = GET_VAL(node);
+
+	if (node == NULL)
+		return Qnil;
+
+	tree = TREE(self);
+
+	if (tree == Qnil)
+		return Qnil;
+
+	val = GET_VAL(node);
+
 	dict_delete_free(DICT(tree), node);
 	return val;
 }
@@ -325,10 +334,17 @@ rbtree_element_delete(VALUE self)
 VALUE
 rbtree_element_swap_with_next(VALUE self) 
 {
+	VALUE tree;
 	dnode_t *node = NODE(self);
-	if (node == NULL) return Qnil;
-	VALUE tree = TREE(self);
-	if (tree == Qnil) return Qnil;
+
+	if (node == NULL)
+		return Qnil;
+
+	tree = TREE(self);
+
+	if (tree == Qnil)
+		return Qnil;
+
 	if (dict_swap_with_next(DICT(tree), node)) {
 		return Qtrue;
 	} else {
@@ -505,33 +521,37 @@ rbtree_insert(VALUE self, VALUE key, VALUE value)
 VALUE
 rbtree_aset(VALUE self, VALUE key, VALUE value)
 {
-    rbtree_modify(self);
+	rbtree_modify(self);
 
-    if (dict_isfull(DICT(self))) {
-        dnode_t* node = dict_lookup(DICT(self), TO_KEY(key));
-        if (node == NULL)
-            rb_raise(rb_eIndexError, "rbtree full");
-        else
-            dnode_put(node, TO_VAL(value));
-        return value;
-    }
-    dnode_t *ignore = rbtree_insert(self, key, value);
-    return value;
+	if (dict_isfull(DICT(self))) {
+		dnode_t* node = dict_lookup(DICT(self), TO_KEY(key));
+
+		if (node == NULL)
+			rb_raise(rb_eIndexError, "rbtree full");
+		else
+			dnode_put(node, TO_VAL(value));
+		return value;
+	}
+
+	rbtree_insert(self, key, value); /* ignore return value */
+	return value;
 }
 
 VALUE
 rbtree_add_element(VALUE self, VALUE key, VALUE value)
 {
-    rbtree_modify(self);
-
 	dnode_t *node;
+	rbtree_modify(self);
 
-    if (dict_isfull(DICT(self))) {
-        node = dict_lookup(DICT(self), TO_KEY(key));
-        if (node == NULL) rb_raise(rb_eIndexError, "rbtree full");
-        dnode_put(node, TO_VAL(value));
-    } else {
-    	node = rbtree_insert(self, key, value);
+	if (dict_isfull(DICT(self))) {
+		node = dict_lookup(DICT(self), TO_KEY(key));
+
+		if (node == NULL)
+			rb_raise(rb_eIndexError, "rbtree full");
+
+		dnode_put(node, TO_VAL(value));
+	} else {
+		node = rbtree_insert(self, key, value);
 	}
 	return rbtree_element_create(self, node);
 }
