@@ -1,6 +1,6 @@
 # -*- mode: ruby; coding: utf-8 -*-
 
-Gem::Specification.new do |s|
+RBTREE_NG_GEMSPEC = Gem::Specification.new do |s|
   s.name = "rbtree-ng"
   s.version = "0.3.2"
 
