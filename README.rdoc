@@ -160,9 +160,9 @@ and then
 
   $ rake test
 
-== Incomplete Documents
+== Incomplete Documentation
 
-  $ rdoc rbtree.c
+  $ rake rdoc
 
 or online documents at http://rbtree.rubyforge.org/.
 

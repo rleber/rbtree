@@ -1,5 +1,11 @@
+# -*- coding: utf-8 -*-
 # -*- ruby -*-
+require "rake/clean"
+require "rdoc/task"
 require "rubygems/package_task"
+
+CLEAN.include("ext/Makefile", "ext/*.o", "ext/mkmf.log")
+CLOBBER.include("ext/*.so")
 
 desc "Compiles the library"
 task :compile do
@@ -15,6 +21,13 @@ task :test => :compile do
       ruby path
     end
   end
+end
+
+RDoc::Task.new do |r|
+  r.rdoc_dir = "doc"
+  r.rdoc_files.include("ext/*.c", "*.rdoc", "LICENSE", "ChangeLog")
+  r.title = "RBTree RDocs"
+  r.main  = "README.rdoc"
 end
 
 load "rbtree-ng.gemspec"
