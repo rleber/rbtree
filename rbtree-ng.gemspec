@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = "rbtree-ng"
-  s.version = "0.3.1"
+  s.version = "0.3.2"
 
   s.authors = ["OZAWA Takuma", "Richard LeBer", "Marvin Gülker"]
   s.summary = "Fast Red-Black Tree implementation for Ruby in C, now also for Ruby 2"

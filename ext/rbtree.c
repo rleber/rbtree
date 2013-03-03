@@ -1936,6 +1936,8 @@ void Init_rbtree()
     MultiRBTree = rb_define_class("MultiRBTree", rb_cData);
     RBTree = rb_define_class("RBTree", MultiRBTree);
 
+    rb_define_const(MultiRBTree, "VERSION", rb_str_new2("0.3.2"))
+
 	RBTreeElement = rb_define_class_under(RBTree, "Element", rb_cData);
     rb_define_method(RBTreeElement, "initialize_copy", rbtree_element_initialize_copy, 1);
 	rb_define_method(RBTreeElement, "tree", rbtree_element_tree, 0);
