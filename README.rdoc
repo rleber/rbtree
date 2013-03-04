@@ -145,17 +145,17 @@ You can also delete elements directly:
 
 == Install
 
-  $ [sudo] gem install rbtree-ng
+  $ [sudo] gem install rbtree
 
-Or grab the sourcecode from https://github.com/Quintus/rbtree:
+Or grab the sourcecode from https://github.com/rleber/rbtree:
 
-  $ git clone git://github.com/Quintus/rbtree
+  $ git clone git://github.com/rleber/rbtree
 
 and then
 
   $ rake compile
   $ rake gem
-  $ [sudo] gem install pkg/rbtree-ng-*.gem
+  $ [sudo] gem install pkg/rbtree-*.gem
 
 == Test
 
@@ -183,6 +183,6 @@ me at burningdowntheopera at yahoo dot co dot jp.
 
 == Links
 
-* {GitHub page}[https://github.com/Quintus/rbtree]
+* {GitHub page}[https://github.com/rleber/rbtree]
 * {Original RubyForge project}[http://rubyforge.org/projects/rbtree/]
 * {Original Website}[http://www.geocities.co.jp/SiliconValley-PaloAlto/3388/rbtree/README.html]
