@@ -6,7 +6,7 @@ RBTREE_GEMSPEC = Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["OZAWA Takuma", "Richard LeBer", "Marvin Gülker"]
-  s.date = %q{2010-05-04}
+  s.licenses = ["MIT", "Free Software License"] if s.respond_to?(:licenses=)
   s.description = %q{RBTree is a sorted associative collection that is implemented with a Red-Black Tree. The elements of RBTree are ordered and its interface is the almost same as Hash, so you can consider RBTree to be simply a sorted Hash.}
   s.email = ["rleber@mindspring.com"]
   s.extra_rdoc_files = ["ChangeLog", "MANIFEST"]
