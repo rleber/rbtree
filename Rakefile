@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# -*- ruby -*-
+# -*- mode: ruby; coding: utf-8 -*-
 require "rake/clean"
 require "rdoc/task"
 require "rubygems/package_task"
@@ -32,3 +31,4 @@ end
 
 load "rbtree-ng.gemspec"
 Gem::PackageTask.new(RBTREE_NG_GEMSPEC).define
+
