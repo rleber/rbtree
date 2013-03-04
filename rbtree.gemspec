@@ -9,9 +9,9 @@ RBTREE_GEMSPEC = Gem::Specification.new do |s|
   s.licenses = ["MIT", "Free Software License"] if s.respond_to?(:licenses=)
   s.description = %q{RBTree is a sorted associative collection that is implemented with a Red-Black Tree. The elements of RBTree are ordered and its interface is the almost same as Hash, so you can consider RBTree to be simply a sorted Hash.}
   s.email = ["rleber@mindspring.com"]
-  s.extra_rdoc_files = ["ChangeLog", "MANIFEST"]
+  s.extra_rdoc_files = Dir["*.rdoc"] + Dir["ext/*.c"] + ["ChangeLog", "LICENSE"]
   s.files = Dir["ext/*.c"] + Dir["ext/*.h"] + ["ext/extconf.rb"] +
-    Dir["test/test_*.rb"] + Dir["*.rdoc"] + ["ChangeLog", "License"]
+    Dir["test/test_*.rb"] + Dir["*.rdoc"] + ["ChangeLog", "LICENSE"]
   s.homepage = %q{http://github.com/rleber/rbtree}
   s.rdoc_options = ["--main", "README.rdoc"]
   s.rubyforge_project = %q{rbtree}
