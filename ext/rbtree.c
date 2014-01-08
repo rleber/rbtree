@@ -225,19 +225,21 @@ rbtree_element_create(VALUE tree, dnode_t *node)
 VALUE
 rbtree_element_initialize_copy(VALUE self, VALUE other)
 {
-    if (self == other)
-        return self;
-    if (!rb_obj_is_kind_of(other, CLASS_OF(self))) {
-        rb_raise(rb_eTypeError, "wrong argument type %s (expected %s)",
-                 rb_class2name(CLASS_OF(other)),
-                 rb_class2name(CLASS_OF(self)));
-    }
-    
+	VALUE tree;
+
+	if (self == other)
+		return self;
+	if (!rb_obj_is_kind_of(other, CLASS_OF(self))) {
+		rb_raise(rb_eTypeError, "wrong argument type %s (expected %s)",
+						 rb_class2name(CLASS_OF(other)),
+						 rb_class2name(CLASS_OF(self)));
+	}
+
 	NODE(self) = NODE(other);
-	VALUE tree = TREE(other);
+	tree       = TREE(other);
 	TREE(self) = tree;
 	rb_ary_push(TRACKING_ELEMENTS(tree),self);
-    return self;
+		return self;
 }
 
 VALUE
@@ -271,18 +273,28 @@ rbtree_element_value(VALUE self)
 VALUE
 rbtree_element_next_prev(VALUE self, const int next)
 {
+	VALUE tree;
 	dnode_t *node = NODE(self);
-	if (node == NULL) return Qnil;
-	VALUE tree = TREE(self);
-	if (tree == Qnil) return Qnil;
-	dnode_t *successor;
+	dnode_t *successor = NULL;
+
+	if (node == NULL)
+		return Qnil;
+
+	tree = TREE(self);
+
+	if (tree == Qnil)
+		return Qnil;
+
 	if (next) {
 		successor = dict_next(DICT(tree), NODE(self));
 	} else {
 		successor = dict_prev(DICT(tree), NODE(self));
 	}
-	if (successor == NULL) return Qnil;
-    return rbtree_element_create(tree, successor);
+
+	if (successor == NULL)
+		return Qnil;
+
+	return rbtree_element_create(tree, successor);
 }
 
 VALUE
@@ -300,11 +312,20 @@ rbtree_element_prev(VALUE self)
 VALUE
 rbtree_element_delete(VALUE self) 
 {
+	VALUE tree;
+	VALUE val;
 	dnode_t *node = NODE(self);
-	if (node == NULL) return Qnil;
-	VALUE tree = TREE(self);
-	if (tree == Qnil) return Qnil;
-	VALUE val = GET_VAL(node);
+
+	if (node == NULL)
+		return Qnil;
+
+	tree = TREE(self);
+
+	if (tree == Qnil)
+		return Qnil;
+
+	val = GET_VAL(node);
+
 	dict_delete_free(DICT(tree), node);
 	return val;
 }
@@ -313,10 +334,17 @@ rbtree_element_delete(VALUE self)
 VALUE
 rbtree_element_swap_with_next(VALUE self) 
 {
+	VALUE tree;
 	dnode_t *node = NODE(self);
-	if (node == NULL) return Qnil;
-	VALUE tree = TREE(self);
-	if (tree == Qnil) return Qnil;
+
+	if (node == NULL)
+		return Qnil;
+
+	tree = TREE(self);
+
+	if (tree == Qnil)
+		return Qnil;
+
 	if (dict_swap_with_next(DICT(tree), node)) {
 		return Qtrue;
 	} else {
@@ -493,33 +521,37 @@ rbtree_insert(VALUE self, VALUE key, VALUE value)
 VALUE
 rbtree_aset(VALUE self, VALUE key, VALUE value)
 {
-    rbtree_modify(self);
+	rbtree_modify(self);
 
-    if (dict_isfull(DICT(self))) {
-        dnode_t* node = dict_lookup(DICT(self), TO_KEY(key));
-        if (node == NULL)
-            rb_raise(rb_eIndexError, "rbtree full");
-        else
-            dnode_put(node, TO_VAL(value));
-        return value;
-    }
-    dnode_t *ignore = rbtree_insert(self, key, value);
-    return value;
+	if (dict_isfull(DICT(self))) {
+		dnode_t* node = dict_lookup(DICT(self), TO_KEY(key));
+
+		if (node == NULL)
+			rb_raise(rb_eIndexError, "rbtree full");
+		else
+			dnode_put(node, TO_VAL(value));
+		return value;
+	}
+
+	rbtree_insert(self, key, value); /* ignore return value */
+	return value;
 }
 
 VALUE
 rbtree_add_element(VALUE self, VALUE key, VALUE value)
 {
-    rbtree_modify(self);
-
 	dnode_t *node;
+	rbtree_modify(self);
 
-    if (dict_isfull(DICT(self))) {
-        node = dict_lookup(DICT(self), TO_KEY(key));
-        if (node == NULL) rb_raise(rb_eIndexError, "rbtree full");
-        dnode_put(node, TO_VAL(value));
-    } else {
-    	node = rbtree_insert(self, key, value);
+	if (dict_isfull(DICT(self))) {
+		node = dict_lookup(DICT(self), TO_KEY(key));
+
+		if (node == NULL)
+			rb_raise(rb_eIndexError, "rbtree full");
+
+		dnode_put(node, TO_VAL(value));
+	} else {
+		node = rbtree_insert(self, key, value);
 	}
 	return rbtree_element_create(self, node);
 }
@@ -1935,6 +1967,8 @@ void Init_rbtree()
 {
     MultiRBTree = rb_define_class("MultiRBTree", rb_cData);
     RBTree = rb_define_class("RBTree", MultiRBTree);
+
+    rb_define_const(MultiRBTree, "VERSION", rb_str_new2("0.3.2"));
 
 	RBTreeElement = rb_define_class_under(RBTree, "Element", rb_cData);
     rb_define_method(RBTreeElement, "initialize_copy", rbtree_element_initialize_copy, 1);
